@@ -59,6 +59,14 @@ impl CornerOrientation {
 
         self.orientations = (self.orientations & !bitmask) | new_value;
     }
+
+    pub fn sum(&self) -> u8 {
+        let mut sum = 0;
+        for i in 0..NUM_CORNERS {
+            sum += self.orientation_at_index(i);
+        }
+        sum
+    }
 }
 
 #[cfg(test)]
@@ -126,5 +134,11 @@ mod tests {
                 corner_set.orientation_at_index(i)
             );
         }
+    }
+
+    #[test]
+    fn sum_test() {
+        let corner_set = CornerOrientation::new_with_orientation(0b0110001001000110);
+        assert_eq!(9, corner_set.sum());
     }
 }

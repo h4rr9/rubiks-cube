@@ -31,6 +31,10 @@ impl EdgeOrientation {
     pub fn add_one(&mut self, idx: u8) {
         self.orientations.toggle(idx as usize);
     }
+
+    pub fn sum(&self) -> u8 {
+        self.orientations.count_ones(..) as u8
+    }
 }
 
 #[cfg(test)]
@@ -71,5 +75,11 @@ mod tests {
             edge_set.add_one(i);
             assert_eq!((edge_orientation + 1) % 2, edge_set.orientation_at_index(i));
         }
+    }
+
+    #[test]
+    fn sum_test() {
+        let edge_set = EdgeOrientation::new_with_orientation(0b010101101010);
+        assert_eq!(6, edge_set.sum());
     }
 }
