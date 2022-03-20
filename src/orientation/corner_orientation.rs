@@ -1,4 +1,4 @@
-use super::faces::{Corner, CORNERS, NUM_CORNERS};
+use crate::cubies::{Corner, CORNER_CUBIES, NUM_CORNERS};
 
 #[derive(Debug)]
 pub struct CornerOrientation {
@@ -31,7 +31,7 @@ impl CornerOrientation {
                 idx
             );
         }
-        &CORNERS[idx as usize]
+        &CORNER_CUBIES[idx as usize]
     }
 
     pub fn add_one(&mut self, idx: u8) {
@@ -73,7 +73,7 @@ impl CornerOrientation {
 mod tests {
 
     use super::*;
-    use crate::sets::faces::{CORNERS, NUM_CORNERS};
+    use crate::cubies::{CORNER_CUBIES, NUM_CORNERS};
 
     #[test]
     fn corner_and_orientation_test() {
@@ -83,7 +83,7 @@ mod tests {
             let corner = *corner_set.corner_by_index(i);
             let corner_orientation = corner_set.orientation_at_index(i);
 
-            assert_eq!(corner, CORNERS[i as usize]);
+            assert_eq!(corner, CORNER_CUBIES[i as usize]);
             assert_eq!(corner_orientation, 0);
         }
     }

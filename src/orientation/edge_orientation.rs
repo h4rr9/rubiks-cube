@@ -1,6 +1,5 @@
+use crate::cubies::{Edge, EDGE_CUBIES, NUM_EDGES};
 use fixedbitset::FixedBitSet;
-
-use super::faces::{Edge, EDGES, NUM_EDGES};
 
 #[derive(Debug)]
 pub struct EdgeOrientation {
@@ -25,7 +24,7 @@ impl EdgeOrientation {
     }
 
     pub fn edge_by_index(&self, idx: u8) -> &Edge {
-        &EDGES[idx as usize]
+        &EDGE_CUBIES[idx as usize]
     }
 
     pub fn add_one(&mut self, idx: u8) {
@@ -41,7 +40,7 @@ impl EdgeOrientation {
 mod tests {
 
     use super::*;
-    use crate::sets::faces::{EDGES, NUM_EDGES};
+    use crate::cubies::{EDGE_CUBIES, NUM_EDGES};
 
     #[test]
     fn edge_and_orientation_test() {
@@ -51,7 +50,7 @@ mod tests {
             let edge = *edge_set.edge_by_index(i);
             let edge_orientation = edge_set.orientation_at_index(i);
 
-            assert_eq!(edge, EDGES[i as usize]);
+            assert_eq!(edge, EDGE_CUBIES[i as usize]);
             assert_eq!(edge_orientation, 0);
         }
     }
