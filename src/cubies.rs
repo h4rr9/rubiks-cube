@@ -26,41 +26,49 @@ pub const NUM_EDGES: u8 = 12;
 
 pub const CORNER_CUBIES: [Corner; NUM_CORNERS as usize] = [
     Corner {
+        // cubie 0
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Red,
         facelet_c: Faces::Blue,
     },
     Corner {
+        // cubie 1
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Blue,
         facelet_c: Faces::Orange,
     },
     Corner {
+        // cubie 2
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Orange,
         facelet_c: Faces::Green,
     },
     Corner {
+        // cubie 3
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Green,
         facelet_c: Faces::Red,
     },
     Corner {
+        // cubie 4
         facelet_a: Faces::White,
         facelet_b: Faces::Blue,
         facelet_c: Faces::Red,
     },
     Corner {
+        // cubie 5
         facelet_a: Faces::White,
         facelet_b: Faces::Orange,
         facelet_c: Faces::Blue,
     },
     Corner {
+        // cubie 6
         facelet_a: Faces::White,
         facelet_b: Faces::Green,
         facelet_c: Faces::Orange,
     },
     Corner {
+        // cubie 7
         facelet_a: Faces::White,
         facelet_b: Faces::Red,
         facelet_c: Faces::Green,
@@ -68,51 +76,51 @@ pub const CORNER_CUBIES: [Corner; NUM_CORNERS as usize] = [
 ];
 
 pub const EDGE_CUBIES: [Edge; NUM_EDGES as usize] = [
-    Edge {
+    Edge { // cubie 0
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Blue,
     },
-    Edge {
+    Edge {// cubie 1
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Orange,
     },
-    Edge {
+    Edge {// cubie 2
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Green,
     },
-    Edge {
+    Edge {// cubie 3
         facelet_a: Faces::Yellow,
         facelet_b: Faces::Red,
     },
-    Edge {
+    Edge {// cubie 4
         facelet_a: Faces::Red,
         facelet_b: Faces::Blue,
     },
-    Edge {
+    Edge {// cubie 5
         facelet_a: Faces::Orange,
         facelet_b: Faces::Blue,
     },
-    Edge {
+    Edge {// cubie 6
         facelet_a: Faces::Orange,
         facelet_b: Faces::Green,
     },
-    Edge {
+    Edge {// cubie 7
         facelet_a: Faces::Red,
         facelet_b: Faces::Green,
     },
-    Edge {
+    Edge {// cubie 8
         facelet_a: Faces::White,
         facelet_b: Faces::Blue,
     },
-    Edge {
+    Edge {// cubie 9
         facelet_a: Faces::White,
         facelet_b: Faces::Orange,
     },
-    Edge {
+    Edge {// cubie 10
         facelet_a: Faces::White,
         facelet_b: Faces::Green,
     },
-    Edge {
+    Edge {// cubie 11
         facelet_a: Faces::White,
         facelet_b: Faces::Red,
     },

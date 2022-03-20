@@ -1,3 +1,7 @@
+mod cube;
 mod cubies;
 mod orientation;
-mod cube;
+mod permutation;
+mod moves;
+
+pub use cube::Cube;
