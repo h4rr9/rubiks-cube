@@ -1,4 +1,6 @@
-use std::{char, fmt::Display};
+use std::fmt::Display;
+
+use std::str::FromStr;
 
 use crate::{
     cubies::*,
@@ -24,8 +26,100 @@ impl Cube {
             corner_permutation: Permutation::new(NUM_CORNERS),
         }
     }
-    // TODO: Implement this
-    // pub fn from_array(cube_arr: &[&[&[char; 3]; 3]; 6]) -> Cube {}
+
+    /// Initializes a Cube object with values from 6 x 3 x 3 array of face colors
+    ///
+    /// # Arguments
+    ///
+    /// * `cube_arr` - 6 x 3 x 3 array of face colors
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use crate::rubikscube::Cube;
+    /// let cube_array =
+    /// [[["W";3];3],[["Y";3];3],[["G";3];3],[["B";3];3],[["R";3];3],[["O";3];3]];
+    /// let cube = Cube::from_array(&cube_array);
+    /// ```
+    pub fn from_array(cube_array: &[[[&str; 3]; 3]; 6]) -> Cube {
+        let mut edge_permutation = vec![0u8; NUM_EDGES as usize];
+        let mut corner_permutation = vec![0u8; NUM_CORNERS as usize];
+        let mut edge_orientation = EdgeOrientation::new();
+        let mut corner_orientation = CornerOrientation::new();
+
+        for (corner_idx, corner) in CORNER_CUBIES.iter().enumerate() {
+            let primary_facelet_idx = corner.cubie_facelet_a_idx().unwrap();
+            let secondary_facelet_idx = corner.cubie_facelet_b_idx().unwrap();
+            let tertiary_facelet_idx = corner.cubie_facelet_c_idx().unwrap();
+
+            let facelet_a = Faces::from_str(
+                cube_array[primary_facelet_idx.0 as usize][primary_facelet_idx.1 as usize]
+                    [primary_facelet_idx.2 as usize],
+            )
+            .unwrap();
+            let facelet_b = Faces::from_str(
+                cube_array[secondary_facelet_idx.0 as usize][secondary_facelet_idx.1 as usize]
+                    [secondary_facelet_idx.2 as usize],
+            )
+            .unwrap();
+            let facelet_c = Faces::from_str(
+                cube_array[tertiary_facelet_idx.0 as usize][tertiary_facelet_idx.1 as usize]
+                    [tertiary_facelet_idx.2 as usize],
+            )
+            .unwrap();
+
+            let corner_cubie = Corner::new(facelet_a, facelet_b, facelet_c);
+
+            let corner_cubie_idx = corner_cubie.cubie_index();
+            corner_permutation[corner_idx] = corner_cubie_idx;
+
+            let primary_facelet: Faces = CORNER_CUBIES[corner_cubie_idx as usize].facelet_a();
+
+            match corner_cubie.get_orientation(primary_facelet) {
+                1 => corner_orientation.add_two(corner_cubie_idx),
+                2 => corner_orientation.add_one(corner_cubie_idx),
+                _ => {}
+            }
+        }
+
+        for (edge_idx, edge) in EDGE_CUBIES.iter().enumerate() {
+            let primary_facelet_idx = edge.cubie_facelet_a_idx().unwrap();
+            let secondary_facelet_idx = edge.cubie_facelet_b_idx().unwrap();
+
+            let facelet_a = Faces::from_str(
+                cube_array[primary_facelet_idx.0 as usize][primary_facelet_idx.1 as usize]
+                    [primary_facelet_idx.2 as usize],
+            )
+            .unwrap();
+            let facelet_b = Faces::from_str(
+                cube_array[secondary_facelet_idx.0 as usize][secondary_facelet_idx.1 as usize]
+                    [secondary_facelet_idx.2 as usize],
+            )
+            .unwrap();
+
+            let edge_cubie = Edge::new(facelet_a, facelet_b);
+
+            let edge_cubie_idx = edge_cubie.cubie_index();
+            edge_permutation[edge_idx] = edge_cubie_idx;
+
+            let primary_facelet: Faces = EDGE_CUBIES[edge_cubie_idx as usize].facelet_a();
+
+            match edge_cubie.get_orientation(primary_facelet) {
+                1 => edge_orientation.add_one(edge_cubie_idx),
+                _ => {}
+            }
+        }
+
+        let edge_permutation = Permutation::new_with_permutation(&edge_permutation);
+        let corner_permutation = Permutation::new_with_permutation(&corner_permutation);
+
+        Cube {
+            edge_orientation,
+            corner_orientation,
+            edge_permutation,
+            corner_permutation,
+        }
+    }
 
     pub fn scramble(num_turns: u32) -> Cube {
         let mut cube = Cube::new();
@@ -102,6 +196,12 @@ impl Cube {
                 self.corner_permutation.swap_two_cubicles(x, z);
             }
         }
+    }
+
+    pub fn is_solvable(&self) -> bool {
+        (self.edge_permutation.parity() == self.corner_permutation.parity())
+            && (self.edge_orientation.sum() % 2 == 0)
+            && (self.corner_orientation.sum() % 3 == 0)
     }
 }
 
@@ -351,6 +451,38 @@ mod tests {
         cube.turn(crate::Moves::R_);
 
         println!("{}", cube);
-        assert!(true);
+
+        let cube_array = [
+            [["O", "Y", "O"], ["G", "W", "B"], ["O", "G", "B"]], // W
+            [["B", "W", "R"], ["B", "Y", "Y"], ["R", "O", "G"]], // Y
+            [["G", "Y", "Y"], ["B", "G", "R"], ["Y", "R", "B"]], // G
+            [["B", "O", "W"], ["G", "B", "R"], ["Y", "O", "W"]], // B
+            [["R", "W", "W"], ["G", "R", "R"], ["G", "Y", "G"]], // R
+            [["R", "B", "Y"], ["W", "O", "W"], ["W", "O", "O"]], // O
+        ];
+
+        let cube_from_array = Cube::from_array(&cube_array);
+
+        assert!(cube_from_array.is_solvable());
+
+        println!("{}", cube_from_array);
+        assert_eq!(cube_from_array, cube);
+    }
+
+    #[test]
+    fn from_array_sanity_test() {
+        let cube_array = [
+            [["W"; 3]; 3],
+            [["Y"; 3]; 3],
+            [["G"; 3]; 3],
+            [["B"; 3]; 3],
+            [["R"; 3]; 3],
+            [["O"; 3]; 3],
+        ];
+        let cube = Cube::from_array(&cube_array);
+
+        let solved_cube = Cube::new();
+
+        assert_eq!(cube, solved_cube);
     }
 }
