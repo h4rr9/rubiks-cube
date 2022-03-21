@@ -25,15 +25,7 @@ impl Cube {
         }
     }
     // TODO: Implement this
-    /* pub fn from_array(cube_arr: &[&[&[char; 3]; 3]; 6]) -> Cube {
-        let edge_permutation = Permutation::new(NUM_EDGES);
-
-        let edge_cubicles_indices = vec![(
-            (Faces::Green, 0, 0),
-            (Faces::Red, 0, 0),
-            (Faces::Yellow, 0, 2),
-        ), ((), (), ()];
-    } */
+    // pub fn from_array(cube_arr: &[&[&[char; 3]; 3]; 6]) -> Cube {}
 
     pub fn scramble(num_turns: u32) -> Cube {
         let mut cube = Cube::new();
