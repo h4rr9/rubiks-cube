@@ -47,6 +47,15 @@ impl Permutation {
         }
         p
     }
+
+    pub fn index(&self, idx: u8) -> u8 {
+        let cubie_index = self.permutation[idx as usize];
+        if cubie_index as usize >= self.permutation.len() {
+            panic!("invalid cubie index {}", cubie_index);
+        }
+
+        cubie_index
+    }
 }
 
 #[cfg(test)]

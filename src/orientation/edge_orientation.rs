@@ -1,7 +1,7 @@
 use crate::cubies::{Edge, EDGE_CUBIES, NUM_EDGES};
 use fixedbitset::FixedBitSet;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct EdgeOrientation {
     orientations: FixedBitSet,
 }
