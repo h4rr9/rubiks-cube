@@ -10,7 +10,7 @@ fixedbitset = "0.4.1"
 rand = "0.8"
 
 [dev-dependencies]
-criterion = "0.3.5"
+criterion = "0.3"
 
 [[bench]]
 name = "turn_bench"

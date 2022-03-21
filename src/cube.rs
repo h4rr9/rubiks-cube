@@ -59,22 +59,20 @@ impl Cube {
             Moves::D | Moves::D_ | Moves::D2 => (D_EDGE_CUBICLES, D_CORNER_CUBICLES),
         };
 
-        let cubie_a = self.edge_permutation.index(a);
-        let cubie_b = self.edge_permutation.index(b);
-        let cubie_c = self.edge_permutation.index(c);
-        let cubie_d = self.edge_permutation.index(d);
-        let cubie_w = self.corner_permutation.index(w);
-        let cubie_x = self.corner_permutation.index(x);
-        let cuvie_y = self.corner_permutation.index(y);
-        let cubie_z = self.corner_permutation.index(z);
         match m {
-            Moves::L | Moves::R => {
-                self.edge_permutation.swap_four_cubicles(a, b, c, d);
-                self.corner_permutation.swap_four_cubicles(w, x, y, z);
+            Moves::L | Moves::R | Moves::L_ | Moves::R_ => {
+                let cubie_a = self.edge_permutation.index(a);
+                let cubie_b = self.edge_permutation.index(b);
+                let cubie_c = self.edge_permutation.index(c);
+                let cubie_d = self.edge_permutation.index(d);
+                let cubie_w = self.corner_permutation.index(w);
+                let cubie_x = self.corner_permutation.index(x);
+                let cubie_y = self.corner_permutation.index(y);
+                let cubie_z = self.corner_permutation.index(z);
 
                 self.corner_orientation.add_one(cubie_w);
                 self.corner_orientation.add_two(cubie_x);
-                self.corner_orientation.add_one(cuvie_y);
+                self.corner_orientation.add_one(cubie_y);
                 self.corner_orientation.add_two(cubie_z);
 
                 self.edge_orientation.add_one(cubie_a);
@@ -82,43 +80,26 @@ impl Cube {
                 self.edge_orientation.add_one(cubie_c);
                 self.edge_orientation.add_one(cubie_d);
             }
-            Moves::F | Moves::B => {
+            Moves::F | Moves::B | Moves::F_ | Moves::B_ => {
+                let cubie_w = self.corner_permutation.index(w);
+                let cubie_x = self.corner_permutation.index(x);
+                let cubie_y = self.corner_permutation.index(y);
+                let cubie_z = self.corner_permutation.index(z);
+
+                self.corner_orientation.add_one(cubie_w);
+                self.corner_orientation.add_two(cubie_x);
+                self.corner_orientation.add_one(cubie_y);
+                self.corner_orientation.add_two(cubie_z);
+            }
+            _ => {}
+        }
+
+        match m {
+            Moves::L | Moves::R | Moves::F | Moves::B | Moves::U | Moves::D => {
                 self.edge_permutation.swap_four_cubicles(a, b, c, d);
                 self.corner_permutation.swap_four_cubicles(w, x, y, z);
-
-                self.corner_orientation.add_one(cubie_w);
-                self.corner_orientation.add_two(cubie_x);
-                self.corner_orientation.add_one(cuvie_y);
-                self.corner_orientation.add_two(cubie_z);
             }
-            Moves::U | Moves::D => {
-                self.edge_permutation.swap_four_cubicles(a, b, c, d);
-                self.corner_permutation.swap_four_cubicles(w, x, y, z);
-            }
-            Moves::L_ | Moves::R_ => {
-                self.edge_permutation.swap_four_cubicles(d, c, b, a);
-                self.corner_permutation.swap_four_cubicles(z, y, x, w);
-
-                self.corner_orientation.add_one(cubie_w);
-                self.corner_orientation.add_two(cubie_x);
-                self.corner_orientation.add_one(cuvie_y);
-                self.corner_orientation.add_two(cubie_z);
-
-                self.edge_orientation.add_one(cubie_a);
-                self.edge_orientation.add_one(cubie_b);
-                self.edge_orientation.add_one(cubie_c);
-                self.edge_orientation.add_one(cubie_d);
-            }
-            Moves::F_ | Moves::B_ => {
-                self.edge_permutation.swap_four_cubicles(d, c, b, a);
-                self.corner_permutation.swap_four_cubicles(z, y, x, w);
-
-                self.corner_orientation.add_one(cubie_w);
-                self.corner_orientation.add_two(cubie_x);
-                self.corner_orientation.add_one(cuvie_y);
-                self.corner_orientation.add_two(cubie_z);
-            }
-            Moves::U_ | Moves::D_ => {
+            Moves::L_ | Moves::R_ | Moves::F_ | Moves::B_ | Moves::U_ | Moves::D_ => {
                 self.edge_permutation.swap_four_cubicles(d, c, b, a);
                 self.corner_permutation.swap_four_cubicles(z, y, x, w);
             }
@@ -378,6 +359,6 @@ mod tests {
         cube.turn(crate::Moves::R_);
 
         println!("{}", cube);
-        assert!(false);
+        assert!(true);
     }
 }
