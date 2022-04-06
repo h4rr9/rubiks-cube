@@ -47,6 +47,7 @@ impl Cube {
         let mut edge_orientation = EdgeOrientation::new();
         let mut corner_orientation = CornerOrientation::new();
 
+        // sets corner cubies orientation and values
         for (corner_idx, corner) in CORNER_CUBIES.iter().enumerate() {
             let primary_facelet_idx = corner.cubie_facelet_a_idx().unwrap();
             let secondary_facelet_idx = corner.cubie_facelet_b_idx().unwrap();
@@ -82,6 +83,7 @@ impl Cube {
             }
         }
 
+        // sets edge cubies orientation and values
         for (edge_idx, edge) in EDGE_CUBIES.iter().enumerate() {
             let primary_facelet_idx = edge.cubie_facelet_a_idx().unwrap();
             let secondary_facelet_idx = edge.cubie_facelet_b_idx().unwrap();
@@ -136,6 +138,7 @@ impl Cube {
     }
 
     pub fn turn(&mut self, m: Moves) {
+        // unpack cubicle indices
         let ((a, b, c, d), (w, x, y, z)) = match m {
             Moves::L | Moves::L_ | Moves::L2 => (L_EDGE_CUBICLES, L_CORNER_CUBICLES),
             Moves::R | Moves::R_ | Moves::R2 => (R_EDGE_CUBICLES, R_CORNER_CUBICLES),
@@ -145,16 +148,17 @@ impl Cube {
             Moves::D | Moves::D_ | Moves::D2 => (D_EDGE_CUBICLES, D_CORNER_CUBICLES),
         };
 
+        // updating edge and corner cubie orientation based on move
         match m {
             Moves::L | Moves::R | Moves::L_ | Moves::R_ => {
-                let cubie_a = self.edge_permutation.index(a);
-                let cubie_b = self.edge_permutation.index(b);
-                let cubie_c = self.edge_permutation.index(c);
-                let cubie_d = self.edge_permutation.index(d);
-                let cubie_w = self.corner_permutation.index(w);
-                let cubie_x = self.corner_permutation.index(x);
-                let cubie_y = self.corner_permutation.index(y);
-                let cubie_z = self.corner_permutation.index(z);
+                let cubie_a = self.edge_permutation.cubie_in_cubicle(a);
+                let cubie_b = self.edge_permutation.cubie_in_cubicle(b);
+                let cubie_c = self.edge_permutation.cubie_in_cubicle(c);
+                let cubie_d = self.edge_permutation.cubie_in_cubicle(d);
+                let cubie_w = self.corner_permutation.cubie_in_cubicle(w);
+                let cubie_x = self.corner_permutation.cubie_in_cubicle(x);
+                let cubie_y = self.corner_permutation.cubie_in_cubicle(y);
+                let cubie_z = self.corner_permutation.cubie_in_cubicle(z);
 
                 self.corner_orientation.add_one(cubie_w);
                 self.corner_orientation.add_two(cubie_x);
@@ -167,10 +171,10 @@ impl Cube {
                 self.edge_orientation.add_one(cubie_d);
             }
             Moves::F | Moves::B | Moves::F_ | Moves::B_ => {
-                let cubie_w = self.corner_permutation.index(w);
-                let cubie_x = self.corner_permutation.index(x);
-                let cubie_y = self.corner_permutation.index(y);
-                let cubie_z = self.corner_permutation.index(z);
+                let cubie_w = self.corner_permutation.cubie_in_cubicle(w);
+                let cubie_x = self.corner_permutation.cubie_in_cubicle(x);
+                let cubie_y = self.corner_permutation.cubie_in_cubicle(y);
+                let cubie_z = self.corner_permutation.cubie_in_cubicle(z);
 
                 self.corner_orientation.add_one(cubie_w);
                 self.corner_orientation.add_two(cubie_x);
@@ -180,6 +184,7 @@ impl Cube {
             _ => {}
         }
 
+        // updating edge and corner cubie permutation based on move
         match m {
             Moves::L | Moves::R | Moves::F | Moves::B | Moves::U | Moves::D => {
                 self.edge_permutation.swap_four_cubicles(a, b, c, d);
@@ -210,7 +215,7 @@ impl Display for Cube {
         let corner_cubies: Vec<Corner> = (0..NUM_CORNERS)
             .into_iter()
             .map(|idx| {
-                let cubie_idx = self.corner_permutation.index(idx);
+                let cubie_idx = self.corner_permutation.cubie_in_cubicle(idx);
                 (cubie_idx, CORNER_CUBIES[cubie_idx as usize].clone())
             })
             .map(|(idx, corner)| -> Corner {
@@ -221,7 +226,7 @@ impl Display for Cube {
         let edge_cubies: Vec<Edge> = (0..NUM_EDGES)
             .into_iter()
             .map(|idx| {
-                let cubie_idx = self.edge_permutation.index(idx);
+                let cubie_idx = self.edge_permutation.cubie_in_cubicle(idx);
                 (cubie_idx, EDGE_CUBIES[cubie_idx as usize].clone())
             })
             .map(|(idx, edge)| -> Edge {

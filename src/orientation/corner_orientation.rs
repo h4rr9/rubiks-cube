@@ -1,4 +1,4 @@
-use crate::cubies::{Corner, CORNER_CUBIES, NUM_CORNERS};
+use crate::cubies::NUM_CORNERS;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct CornerOrientation {
@@ -10,10 +10,6 @@ impl CornerOrientation {
         CornerOrientation { orientations: 0 }
     }
 
-    pub fn new_with_orientation(n: u16) -> CornerOrientation {
-        CornerOrientation { orientations: n }
-    }
-
     pub fn orientation_at_index(&self, idx: u8) -> u8 {
         if idx >= NUM_CORNERS {
             panic!(
@@ -22,16 +18,6 @@ impl CornerOrientation {
             );
         }
         ((self.orientations >> (idx << 1)) as u8) & 3u8
-    }
-
-    pub fn corner_by_index(&self, idx: u8) -> &Corner {
-        if idx >= NUM_CORNERS {
-            panic!(
-                "corner index out of bounds, expected value less than 8, got {}",
-                idx
-            );
-        }
-        &CORNER_CUBIES[idx as usize]
     }
 
     pub fn add_one(&mut self, idx: u8) {
@@ -72,8 +58,25 @@ impl CornerOrientation {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
-    use crate::cubies::{CORNER_CUBIES, NUM_CORNERS};
+    use super::CornerOrientation;
+
+    use crate::cubies::{Corner, CORNER_CUBIES, NUM_CORNERS};
+
+    impl CornerOrientation {
+        pub fn corner_by_index(&self, idx: u8) -> &Corner {
+            if idx >= NUM_CORNERS {
+                panic!(
+                    "corner index out of bounds, expected value less than 8, got {}",
+                    idx
+                );
+            }
+            &CORNER_CUBIES[idx as usize]
+        }
+
+        pub fn new_with_orientation(n: u16) -> CornerOrientation {
+            CornerOrientation { orientations: n }
+        }
+    }
 
     #[test]
     fn corner_and_orientation_test() {

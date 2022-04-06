@@ -1,4 +1,4 @@
-use crate::cubies::{Edge, EDGE_CUBIES, NUM_EDGES};
+use crate::cubies::NUM_EDGES;
 use fixedbitset::FixedBitSet;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -13,18 +13,8 @@ impl EdgeOrientation {
         }
     }
 
-    pub fn new_with_orientation(n: u16) -> EdgeOrientation {
-        EdgeOrientation {
-            orientations: FixedBitSet::with_capacity_and_blocks(NUM_EDGES as usize, vec![n as u32]),
-        }
-    }
-
     pub fn orientation_at_index(&self, idx: u8) -> u8 {
         self.orientations[idx as usize] as u8
-    }
-
-    pub fn edge_by_index(&self, idx: u8) -> &Edge {
-        &EDGE_CUBIES[idx as usize]
     }
 
     pub fn add_one(&mut self, idx: u8) {
@@ -38,9 +28,24 @@ impl EdgeOrientation {
 
 #[cfg(test)]
 mod tests {
+    use super::EdgeOrientation;
+    use crate::cubies::{Edge, EDGE_CUBIES, NUM_EDGES};
+    use fixedbitset::FixedBitSet;
 
-    use super::*;
-    use crate::cubies::{EDGE_CUBIES, NUM_EDGES};
+    impl EdgeOrientation {
+        pub fn edge_by_index(&self, idx: u8) -> &Edge {
+            &EDGE_CUBIES[idx as usize]
+        }
+
+        pub fn new_with_orientation(n: u16) -> EdgeOrientation {
+            EdgeOrientation {
+                orientations: FixedBitSet::with_capacity_and_blocks(
+                    NUM_EDGES as usize,
+                    vec![n as u32],
+                ),
+            }
+        }
+    }
 
     #[test]
     fn edge_and_orientation_test() {
