@@ -5,7 +5,7 @@ use rand::{
     Rng,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Turn {
     L,  // Clockwise Left turn
     R,  // Clockwise Right turn
