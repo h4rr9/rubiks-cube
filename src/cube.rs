@@ -1,9 +1,19 @@
+//! Fast and easy queue abstraction.
+//!
+//! Provides an abstraction over a queue.  When the abstraction is used
+//! there are these advantages:
+//! - Fast
+//! - [`Easy`]
+//!
+//! [`Easy`]: http://thatwaseasy.example.com
+
 use std::fmt::Display;
 
 use std::str::FromStr;
 
 use crate::{
     cubies::*,
+    errors::CubeError,
     moves::Moves,
     orientation::{CornerOrientation, EdgeOrientation},
     permutation::Permutation,
@@ -27,7 +37,9 @@ impl Cube {
         }
     }
 
-    /// Initializes a Cube object with values from 6 x 3 x 3 array of face colors
+    /// Initializes a Cube object with values from 6 x 3 x 3 array of face colors.
+    /// The function assumes Green face to the front and Yellow facing up.
+    /// The expected order of face colours is W, Y, G, B, R, O
     ///
     /// # Arguments
     ///
@@ -39,9 +51,27 @@ impl Cube {
     /// use crate::rubikscube::Cube;
     /// let cube_array =
     /// [[["W";3];3],[["Y";3];3],[["G";3];3],[["B";3];3],[["R";3];3],[["O";3];3]];
-    /// let cube = Cube::from_array(&cube_array);
+    /// let cube = Cube::cube_from_array(&cube_array);
     /// ```
-    pub fn from_array(cube_array: &[[[&str; 3]; 3]; 6]) -> Cube {
+    pub fn cube_from_array(cube_array: &[[[&str; 3]; 3]; 6]) -> Result<Cube, CubeError> {
+        let mut cube_faces = [[[Faces::White; 3]; 3]; 6];
+
+        for (i, face) in cube_array.iter().enumerate() {
+            for (j, row) in face.into_iter().enumerate() {
+                for (k, elem) in row.iter().enumerate() {
+                    let face: Faces = Faces::from_str(elem)?;
+                    if j == 1 && k == 1 && face as usize != i {
+                        return Err(CubeError::InvalidFaceOrder(face, i as usize));
+                    }
+                    cube_faces[i][j][k] = face;
+                }
+            }
+        }
+
+        Ok(Cube::cube_from_faces(&cube_faces))
+    }
+
+    fn cube_from_faces(cube_faces: &[[[Faces; 3]; 3]; 6]) -> Cube {
         let mut edge_permutation = vec![0u8; NUM_EDGES as usize];
         let mut corner_permutation = vec![0u8; NUM_CORNERS as usize];
         let mut edge_orientation = EdgeOrientation::new();
@@ -53,21 +83,12 @@ impl Cube {
             let secondary_facelet_idx = corner.cubie_facelet_b_idx().unwrap();
             let tertiary_facelet_idx = corner.cubie_facelet_c_idx().unwrap();
 
-            let facelet_a = Faces::from_str(
-                cube_array[primary_facelet_idx.0 as usize][primary_facelet_idx.1 as usize]
-                    [primary_facelet_idx.2 as usize],
-            )
-            .unwrap();
-            let facelet_b = Faces::from_str(
-                cube_array[secondary_facelet_idx.0 as usize][secondary_facelet_idx.1 as usize]
-                    [secondary_facelet_idx.2 as usize],
-            )
-            .unwrap();
-            let facelet_c = Faces::from_str(
-                cube_array[tertiary_facelet_idx.0 as usize][tertiary_facelet_idx.1 as usize]
-                    [tertiary_facelet_idx.2 as usize],
-            )
-            .unwrap();
+            let facelet_a = cube_faces[primary_facelet_idx.0 as usize]
+                [primary_facelet_idx.1 as usize][primary_facelet_idx.2 as usize];
+            let facelet_b = cube_faces[secondary_facelet_idx.0 as usize]
+                [secondary_facelet_idx.1 as usize][secondary_facelet_idx.2 as usize];
+            let facelet_c = cube_faces[tertiary_facelet_idx.0 as usize]
+                [tertiary_facelet_idx.1 as usize][tertiary_facelet_idx.2 as usize];
 
             let corner_cubie = Corner::new(facelet_a, facelet_b, facelet_c);
 
@@ -88,16 +109,10 @@ impl Cube {
             let primary_facelet_idx = edge.cubie_facelet_a_idx().unwrap();
             let secondary_facelet_idx = edge.cubie_facelet_b_idx().unwrap();
 
-            let facelet_a = Faces::from_str(
-                cube_array[primary_facelet_idx.0 as usize][primary_facelet_idx.1 as usize]
-                    [primary_facelet_idx.2 as usize],
-            )
-            .unwrap();
-            let facelet_b = Faces::from_str(
-                cube_array[secondary_facelet_idx.0 as usize][secondary_facelet_idx.1 as usize]
-                    [secondary_facelet_idx.2 as usize],
-            )
-            .unwrap();
+            let facelet_a = cube_faces[primary_facelet_idx.0 as usize]
+                [primary_facelet_idx.1 as usize][primary_facelet_idx.2 as usize];
+            let facelet_b = cube_faces[secondary_facelet_idx.0 as usize]
+                [secondary_facelet_idx.1 as usize][secondary_facelet_idx.2 as usize];
 
             let edge_cubie = Edge::new(facelet_a, facelet_b);
 
@@ -312,7 +327,11 @@ impl Display for Cube {
 
 #[cfg(test)]
 mod tests {
+
+    use crate::cubies::Faces;
+    use crate::errors::CubeError;
     use crate::Cube;
+    use crate::Moves::L;
 
     #[test]
     fn cube_sanity_test() {
@@ -330,7 +349,7 @@ mod tests {
         let solved_cube = Cube::new();
         let mut cube = Cube::new();
 
-        cube.turn(crate::Moves::L);
+        cube.turn(L);
         cube.turn(crate::Moves::L_);
 
         assert_eq!(cube, solved_cube);
@@ -442,13 +461,13 @@ mod tests {
         cube.turn(crate::Moves::D2);
         cube.turn(crate::Moves::F2);
         cube.turn(crate::Moves::D_);
-        cube.turn(crate::Moves::L);
+        cube.turn(L);
         cube.turn(crate::Moves::B2);
         cube.turn(crate::Moves::D2);
         cube.turn(crate::Moves::R2);
-        cube.turn(crate::Moves::L);
+        cube.turn(L);
         cube.turn(crate::Moves::D_);
-        cube.turn(crate::Moves::L);
+        cube.turn(L);
         cube.turn(crate::Moves::D2);
         cube.turn(crate::Moves::R);
         cube.turn(crate::Moves::L2);
@@ -466,7 +485,7 @@ mod tests {
             [["R", "B", "Y"], ["W", "O", "W"], ["W", "O", "O"]], // O
         ];
 
-        let cube_from_array = Cube::from_array(&cube_array);
+        let cube_from_array = Cube::cube_from_array(&cube_array).unwrap();
 
         assert!(cube_from_array.is_solvable());
 
@@ -484,10 +503,40 @@ mod tests {
             [["R"; 3]; 3],
             [["O"; 3]; 3],
         ];
-        let cube = Cube::from_array(&cube_array);
+        let cube = Cube::cube_from_array(&cube_array).unwrap();
 
         let solved_cube = Cube::new();
 
         assert_eq!(cube, solved_cube);
+    }
+
+    #[test]
+    fn from_array_order_err_test() {
+        let cube_array = [
+            [["W"; 3]; 3],
+            [["Y"; 3]; 3],
+            [["B"; 3]; 3],
+            [["G"; 3]; 3],
+            [["R"; 3]; 3],
+            [["O"; 3]; 3],
+        ];
+        let cube_err = Cube::cube_from_array(&cube_array).unwrap_err();
+
+        assert_eq!(cube_err, CubeError::InvalidFaceOrder(Faces::Blue, 2));
+    }
+
+    #[test]
+    fn from_array_color_err_test() {
+        let cube_array = [
+            [["P"; 3]; 3],
+            [["Y"; 3]; 3],
+            [["G"; 3]; 3],
+            [["B"; 3]; 3],
+            [["R"; 3]; 3],
+            [["O"; 3]; 3],
+        ];
+        let cube_err = Cube::cube_from_array(&cube_array).unwrap_err();
+
+        assert_eq!(cube_err, CubeError::InvalidColor);
     }
 }

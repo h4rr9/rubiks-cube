@@ -1,9 +1,11 @@
+use std::fmt::Display;
+
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Moves {
     L,  // Clockwise Left turn
     R,  // Clockwise Right turn
@@ -23,6 +25,31 @@ pub enum Moves {
     B2, // Half Back turn
     U2, // Half Up turn
     D2, // Half Down turn
+}
+
+impl Display for Moves {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Moves::L => write!(f, "L "),
+            Moves::R => write!(f, "R "),
+            Moves::F => write!(f, "F "),
+            Moves::B => write!(f, "B "),
+            Moves::U => write!(f, "U "),
+            Moves::D => write!(f, "D "),
+            Moves::L_ => write!(f, "L_ "),
+            Moves::R_ => write!(f, "R_ "),
+            Moves::F_ => write!(f, "F_ "),
+            Moves::B_ => write!(f, "B_ "),
+            Moves::U_ => write!(f, "U_ "),
+            Moves::D_ => write!(f, "D_ "),
+            Moves::L2 => write!(f, "L2 "),
+            Moves::R2 => write!(f, "R2 "),
+            Moves::F2 => write!(f, "F2 "),
+            Moves::B2 => write!(f, "B2 "),
+            Moves::U2 => write!(f, "U2 "),
+            Moves::D2 => write!(f, "D2 "),
+        }
+    }
 }
 
 impl Distribution<Moves> for Standard {

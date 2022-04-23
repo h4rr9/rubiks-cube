@@ -1,7 +1,7 @@
 use std::cmp::Eq;
 use std::{collections::HashSet, fmt::Display};
 
-#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Copy, Clone, EnumString)]
+#[derive(Debug, Hash, Eq, PartialEq, PartialOrd, Copy, Clone, EnumString, FromRepr)]
 pub enum Faces {
     #[strum(serialize = "white", serialize = "W")]
     White,
