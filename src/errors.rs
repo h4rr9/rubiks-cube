@@ -5,7 +5,7 @@ use crate::cubies::Faces;
 #[derive(Debug, PartialEq)]
 pub enum CubeError {
     InvalidFaceOrder(Faces, usize),
-    InvalidColor,
+    InvalidFaceletColor,
 }
 
 impl std::error::Error for CubeError {}
@@ -20,13 +20,13 @@ impl fmt::Display for CubeError {
                 Faces::from_repr(*index).unwrap(),
                 face_found
             ),
-            CubeError::InvalidColor => write!(f, "Invalid color"),
+            CubeError::InvalidFaceletColor => write!(f, "Invalid Facelet color"),
         }
     }
 }
 
 impl From<strum::ParseError> for CubeError {
     fn from(_: strum::ParseError) -> Self {
-        CubeError::InvalidColor
+        CubeError::InvalidFaceletColor
     }
 }

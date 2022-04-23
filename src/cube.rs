@@ -1,12 +1,3 @@
-//! Fast and easy queue abstraction.
-//!
-//! Provides an abstraction over a queue.  When the abstraction is used
-//! there are these advantages:
-//! - Fast
-//! - [`Easy`]
-//!
-//! [`Easy`]: http://thatwaseasy.example.com
-
 use std::fmt::Display;
 
 use std::str::FromStr;
@@ -20,6 +11,7 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
+// Cube object simulation a 3x3x3 Rubik's Cube
 pub struct Cube {
     edge_orientation: EdgeOrientation,
     corner_orientation: CornerOrientation,
@@ -37,13 +29,15 @@ impl Cube {
         }
     }
 
-    /// Initializes a Cube object with values from 6 x 3 x 3 array of face colors.
+    /// Initializes a Cube object with values from 6 x 3 x 3 array of facelet colors.
+    ///
+    /// Initializes a Cube object from the provided array of facelet colors.
     /// The function assumes Green face to the front and Yellow facing up.
     /// The expected order of face colours is W, Y, G, B, R, O
     ///
     /// # Arguments
     ///
-    /// * `cube_arr` - 6 x 3 x 3 array of face colors
+    /// * `cube_array` - 6 x 3 x 3 array of face colors
     ///
     /// # Examples
     ///
@@ -71,6 +65,14 @@ impl Cube {
         Ok(Cube::cube_from_faces(&cube_faces))
     }
 
+    /// Initializes a Cube object with values from 6 x 3 x 3 array of Face instances.
+    ///
+    /// Helper function for cube_from_array.
+    ///
+    /// # Arguments
+    ///
+    /// * `cube_faces` - 6 x 3 x 3 array of Face instances
+    ///
     fn cube_from_faces(cube_faces: &[[[Faces; 3]; 3]; 6]) -> Cube {
         let mut edge_permutation = vec![0u8; NUM_EDGES as usize];
         let mut corner_permutation = vec![0u8; NUM_CORNERS as usize];
@@ -138,6 +140,20 @@ impl Cube {
         }
     }
 
+    /// creates a scrambled rubiks cube
+    ///
+    /// # Arguments
+    ///
+    /// * `num_turns` - numner of turns to scramble the cube
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rubikscube::Cube;
+    /// let num_scramble_turns = 100;
+    ///
+    /// let cube = Cube::scramble(num_scramble_turns);
+    /// ```
     pub fn scramble(num_turns: u32) -> Cube {
         let mut cube = Cube::new();
 
@@ -152,6 +168,20 @@ impl Cube {
         cube
     }
 
+    /// Performs the specified turn on the cube object.
+    ///
+    /// # Arguments
+    ///
+    /// * `m` - instance of Turn enum
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rubikscube::{Cube, Turn};
+    ///
+    /// let mut cube = Cube::new();
+    /// cube.turn(Turn::F)
+    /// ```
     pub fn turn(&mut self, m: Turn) {
         // unpack cubicle indices
         let ((a, b, c, d), (w, x, y, z)) = match m {
@@ -202,26 +232,88 @@ impl Cube {
         // updating edge and corner cubie permutation based on move
         match m {
             Turn::L | Turn::R | Turn::F | Turn::B | Turn::U | Turn::D => {
-                self.edge_permutation.swap_four_cubicles(a, b, c, d);
-                self.corner_permutation.swap_four_cubicles(w, x, y, z);
+                self.edge_permutation.swap_four_cubies(a, b, c, d);
+                self.corner_permutation.swap_four_cubies(w, x, y, z);
             }
             Turn::L_ | Turn::R_ | Turn::F_ | Turn::B_ | Turn::U_ | Turn::D_ => {
-                self.edge_permutation.swap_four_cubicles(d, c, b, a);
-                self.corner_permutation.swap_four_cubicles(z, y, x, w);
+                self.edge_permutation.swap_four_cubies(d, c, b, a);
+                self.corner_permutation.swap_four_cubies(z, y, x, w);
             }
             Turn::L2 | Turn::R2 | Turn::F2 | Turn::B2 | Turn::U2 | Turn::D2 => {
-                self.edge_permutation.swap_two_cubicles(a, c);
-                self.edge_permutation.swap_two_cubicles(b, d);
-                self.corner_permutation.swap_two_cubicles(w, y);
-                self.corner_permutation.swap_two_cubicles(x, z);
+                self.edge_permutation.swap_two_cubies(a, c);
+                self.edge_permutation.swap_two_cubies(b, d);
+                self.corner_permutation.swap_two_cubies(w, y);
+                self.corner_permutation.swap_two_cubies(x, z);
             }
         }
     }
 
+    /// Checks if current configuration of cube is solvable.
+    /// used to check cube objects created with cube_from_array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rubikscube::Cube;
+    ///
+    ///    let cube_array = [
+    ///        [["O", "Y", "O"], ["G", "W", "B"], ["O", "G", "B"]], // W
+    ///        [["B", "W", "R"], ["B", "Y", "Y"], ["R", "O", "G"]], // Y
+    ///        [["G", "Y", "Y"], ["B", "G", "R"], ["Y", "R", "B"]], // G
+    ///        [["B", "O", "W"], ["G", "B", "R"], ["Y", "O", "W"]], // B
+    ///        [["R", "W", "W"], ["G", "R", "R"], ["G", "Y", "G"]], // R
+    ///        [["R", "B", "Y"], ["W", "O", "W"], ["W", "O", "O"]], // O
+    ///    ];
+    ///
+    /// let cube = Cube::cube_from_array(&cube_array).unwrap();
+    ///
+    /// assert!(cube.is_solvable());
+    /// ```
     pub fn is_solvable(&self) -> bool {
         (self.edge_permutation.parity() == self.corner_permutation.parity())
             && (self.edge_orientation.sum() % 2 == 0)
             && (self.corner_orientation.sum() % 3 == 0)
+    }
+
+    /// calculates the representation of the cube as a one hot array of size 480.
+    ///
+    /// calculates the repesentation of the rubik's cube as a one hot array of size 480.
+    /// Each edge cubie can be in 12 positions with 2 orientations, therefore 24 possible states.
+    /// Each corner cubie can be in 8 positions with 3 orientations, therefore 24 possible states.
+    ///
+    /// The 20 cubies each with 24 possible states gives us the 480 length one-hot array.
+    ///
+    pub fn representation(&self) -> [bool; 480] {
+        let mut repr = [false; 480];
+
+        const NUM_STATES: usize = 24;
+        const NUM_CORNER_ORIENTATION: usize = 3;
+        const NUM_EDGE_ORIENTATION: usize = 2;
+
+        // corner cubicles representation
+        for corner_idx in 0..NUM_CORNERS {
+            let cubie_idx = self.corner_permutation.cubie_in_cubicle(corner_idx);
+            let cubie_orientation =
+                self.corner_orientation.orientation_at_index(cubie_idx) as usize;
+            let index = NUM_STATES * cubie_idx as usize
+                + NUM_CORNER_ORIENTATION * corner_idx as usize
+                + cubie_orientation;
+            println!("{}", index);
+            repr[index] = true;
+        }
+
+        // edge cubicles representation
+        for edge_idx in 0..NUM_EDGES {
+            let cubie_idx = self.edge_permutation.cubie_in_cubicle(edge_idx);
+            let cubie_orientation = self.edge_orientation.orientation_at_index(cubie_idx) as usize;
+            let index = (NUM_STATES * (cubie_idx + NUM_CORNERS) as usize
+                + NUM_EDGE_ORIENTATION * edge_idx as usize
+                + cubie_orientation) as usize;
+            println!("{}", index);
+            repr[index] = true;
+        }
+
+        repr
     }
 }
 
@@ -506,7 +598,7 @@ mod tests {
         let cube = Cube::cube_from_array(&cube_array).unwrap();
 
         let solved_cube = Cube::new();
-
+        assert!(cube.is_solvable());
         assert_eq!(cube, solved_cube);
     }
 
@@ -537,6 +629,108 @@ mod tests {
         ];
         let cube_err = Cube::cube_from_array(&cube_array).unwrap_err();
 
-        assert_eq!(cube_err, CubeError::InvalidColor);
+        assert_eq!(cube_err, CubeError::InvalidFaceletColor);
+    }
+
+    #[test]
+    fn representation_test() {
+        let cube = Cube::new();
+
+        let expeceted_repr = [
+            [
+                true, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, true, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, true, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, true, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                true, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, true, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, true, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, true, false, false,
+            ],
+            [
+                true, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, true, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, true, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, true, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, true, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, true, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                true, false, false, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, true, false, false, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, true, false, false, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, true, false, false, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, true, false, false, false,
+            ],
+            [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, true, false,
+            ],
+        ];
+
+        let mut expeceted_repr_flattened = [false; 480];
+
+        for (i, row) in expeceted_repr.into_iter().enumerate() {
+            for (j, elem) in row.iter().enumerate() {
+                expeceted_repr_flattened[i * 24usize + j] = *elem
+            }
+        }
+
+        let repr = cube.representation();
+
+        for (x, y) in repr.iter().zip(expeceted_repr_flattened.iter()) {
+            assert_eq!(x, y);
+        }
     }
 }
