@@ -21,4 +21,4 @@ extern crate strum;
 extern crate strum_macros;
 
 pub use cube::Cube;
-pub use moves::Moves;
+pub use moves::Turn;

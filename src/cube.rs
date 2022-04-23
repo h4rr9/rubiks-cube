@@ -14,7 +14,7 @@ use std::str::FromStr;
 use crate::{
     cubies::*,
     errors::CubeError,
-    moves::Moves,
+    moves::Turn,
     orientation::{CornerOrientation, EdgeOrientation},
     permutation::Permutation,
 };
@@ -142,7 +142,7 @@ impl Cube {
         let mut cube = Cube::new();
 
         for _ in 0..num_turns {
-            cube.turn(rand::random::<Moves>());
+            cube.turn(rand::random::<Turn>());
         }
 
         assert_eq!(
@@ -152,20 +152,20 @@ impl Cube {
         cube
     }
 
-    pub fn turn(&mut self, m: Moves) {
+    pub fn turn(&mut self, m: Turn) {
         // unpack cubicle indices
         let ((a, b, c, d), (w, x, y, z)) = match m {
-            Moves::L | Moves::L_ | Moves::L2 => (L_EDGE_CUBICLES, L_CORNER_CUBICLES),
-            Moves::R | Moves::R_ | Moves::R2 => (R_EDGE_CUBICLES, R_CORNER_CUBICLES),
-            Moves::F | Moves::F_ | Moves::F2 => (F_EDGE_CUBICLES, F_CORNER_CUBICLES),
-            Moves::B | Moves::B_ | Moves::B2 => (B_EDGE_CUBICLES, B_CORNER_CUBICLES),
-            Moves::U | Moves::U_ | Moves::U2 => (U_EDGE_CUBICLES, U_CORNER_CUBICLES),
-            Moves::D | Moves::D_ | Moves::D2 => (D_EDGE_CUBICLES, D_CORNER_CUBICLES),
+            Turn::L | Turn::L_ | Turn::L2 => (L_EDGE_CUBICLES, L_CORNER_CUBICLES),
+            Turn::R | Turn::R_ | Turn::R2 => (R_EDGE_CUBICLES, R_CORNER_CUBICLES),
+            Turn::F | Turn::F_ | Turn::F2 => (F_EDGE_CUBICLES, F_CORNER_CUBICLES),
+            Turn::B | Turn::B_ | Turn::B2 => (B_EDGE_CUBICLES, B_CORNER_CUBICLES),
+            Turn::U | Turn::U_ | Turn::U2 => (U_EDGE_CUBICLES, U_CORNER_CUBICLES),
+            Turn::D | Turn::D_ | Turn::D2 => (D_EDGE_CUBICLES, D_CORNER_CUBICLES),
         };
 
         // updating edge and corner cubie orientation based on move
         match m {
-            Moves::L | Moves::R | Moves::L_ | Moves::R_ => {
+            Turn::L | Turn::R | Turn::L_ | Turn::R_ => {
                 let cubie_a = self.edge_permutation.cubie_in_cubicle(a);
                 let cubie_b = self.edge_permutation.cubie_in_cubicle(b);
                 let cubie_c = self.edge_permutation.cubie_in_cubicle(c);
@@ -185,7 +185,7 @@ impl Cube {
                 self.edge_orientation.add_one(cubie_c);
                 self.edge_orientation.add_one(cubie_d);
             }
-            Moves::F | Moves::B | Moves::F_ | Moves::B_ => {
+            Turn::F | Turn::B | Turn::F_ | Turn::B_ => {
                 let cubie_w = self.corner_permutation.cubie_in_cubicle(w);
                 let cubie_x = self.corner_permutation.cubie_in_cubicle(x);
                 let cubie_y = self.corner_permutation.cubie_in_cubicle(y);
@@ -201,15 +201,15 @@ impl Cube {
 
         // updating edge and corner cubie permutation based on move
         match m {
-            Moves::L | Moves::R | Moves::F | Moves::B | Moves::U | Moves::D => {
+            Turn::L | Turn::R | Turn::F | Turn::B | Turn::U | Turn::D => {
                 self.edge_permutation.swap_four_cubicles(a, b, c, d);
                 self.corner_permutation.swap_four_cubicles(w, x, y, z);
             }
-            Moves::L_ | Moves::R_ | Moves::F_ | Moves::B_ | Moves::U_ | Moves::D_ => {
+            Turn::L_ | Turn::R_ | Turn::F_ | Turn::B_ | Turn::U_ | Turn::D_ => {
                 self.edge_permutation.swap_four_cubicles(d, c, b, a);
                 self.corner_permutation.swap_four_cubicles(z, y, x, w);
             }
-            Moves::L2 | Moves::R2 | Moves::F2 | Moves::B2 | Moves::U2 | Moves::D2 => {
+            Turn::L2 | Turn::R2 | Turn::F2 | Turn::B2 | Turn::U2 | Turn::D2 => {
                 self.edge_permutation.swap_two_cubicles(a, c);
                 self.edge_permutation.swap_two_cubicles(b, d);
                 self.corner_permutation.swap_two_cubicles(w, y);
@@ -331,7 +331,7 @@ mod tests {
     use crate::cubies::Faces;
     use crate::errors::CubeError;
     use crate::Cube;
-    use crate::Moves::L;
+    use crate::Turn::L;
 
     #[test]
     fn cube_sanity_test() {
@@ -350,62 +350,62 @@ mod tests {
         let mut cube = Cube::new();
 
         cube.turn(L);
-        cube.turn(crate::Moves::L_);
+        cube.turn(crate::Turn::L_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::L2);
-        cube.turn(crate::Moves::L2);
+        cube.turn(crate::Turn::L2);
+        cube.turn(crate::Turn::L2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::R);
-        cube.turn(crate::Moves::R_);
+        cube.turn(crate::Turn::R);
+        cube.turn(crate::Turn::R_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::R2);
-        cube.turn(crate::Moves::R2);
+        cube.turn(crate::Turn::R2);
+        cube.turn(crate::Turn::R2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::U);
-        cube.turn(crate::Moves::U_);
+        cube.turn(crate::Turn::U);
+        cube.turn(crate::Turn::U_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::U2);
-        cube.turn(crate::Moves::U2);
+        cube.turn(crate::Turn::U2);
+        cube.turn(crate::Turn::U2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::D);
-        cube.turn(crate::Moves::D_);
+        cube.turn(crate::Turn::D);
+        cube.turn(crate::Turn::D_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::D2);
-        cube.turn(crate::Moves::D2);
+        cube.turn(crate::Turn::D2);
+        cube.turn(crate::Turn::D2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::F);
-        cube.turn(crate::Moves::F_);
+        cube.turn(crate::Turn::F);
+        cube.turn(crate::Turn::F_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::F2);
-        cube.turn(crate::Moves::F2);
+        cube.turn(crate::Turn::F2);
+        cube.turn(crate::Turn::F2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::B);
-        cube.turn(crate::Moves::B_);
+        cube.turn(crate::Turn::B);
+        cube.turn(crate::Turn::B_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(crate::Moves::B2);
-        cube.turn(crate::Moves::B2);
+        cube.turn(crate::Turn::B2);
+        cube.turn(crate::Turn::B2);
 
         assert_eq!(cube, solved_cube);
     }
@@ -421,10 +421,10 @@ mod tests {
         let solved_cube = Cube::new();
 
         for _ in 0..7 {
-            cube.turn(crate::Moves::U);
-            cube.turn(crate::Moves::R);
-            cube.turn(crate::Moves::R_);
-            cube.turn(crate::Moves::U_);
+            cube.turn(crate::Turn::U);
+            cube.turn(crate::Turn::R);
+            cube.turn(crate::Turn::R_);
+            cube.turn(crate::Turn::U_);
         }
 
         assert_eq!(cube, solved_cube);
@@ -448,31 +448,31 @@ mod tests {
         // B' R U2 R U R' L' U2 F B' D2 F2 D' L B2 D2 R2 L D' L D2 R L2 B' R'
         let mut cube = Cube::new();
 
-        cube.turn(crate::Moves::B_);
-        cube.turn(crate::Moves::R);
-        cube.turn(crate::Moves::U2);
-        cube.turn(crate::Moves::R);
-        cube.turn(crate::Moves::U);
-        cube.turn(crate::Moves::R_);
-        cube.turn(crate::Moves::L_);
-        cube.turn(crate::Moves::U2);
-        cube.turn(crate::Moves::F);
-        cube.turn(crate::Moves::B_);
-        cube.turn(crate::Moves::D2);
-        cube.turn(crate::Moves::F2);
-        cube.turn(crate::Moves::D_);
+        cube.turn(crate::Turn::B_);
+        cube.turn(crate::Turn::R);
+        cube.turn(crate::Turn::U2);
+        cube.turn(crate::Turn::R);
+        cube.turn(crate::Turn::U);
+        cube.turn(crate::Turn::R_);
+        cube.turn(crate::Turn::L_);
+        cube.turn(crate::Turn::U2);
+        cube.turn(crate::Turn::F);
+        cube.turn(crate::Turn::B_);
+        cube.turn(crate::Turn::D2);
+        cube.turn(crate::Turn::F2);
+        cube.turn(crate::Turn::D_);
         cube.turn(L);
-        cube.turn(crate::Moves::B2);
-        cube.turn(crate::Moves::D2);
-        cube.turn(crate::Moves::R2);
+        cube.turn(crate::Turn::B2);
+        cube.turn(crate::Turn::D2);
+        cube.turn(crate::Turn::R2);
         cube.turn(L);
-        cube.turn(crate::Moves::D_);
+        cube.turn(crate::Turn::D_);
         cube.turn(L);
-        cube.turn(crate::Moves::D2);
-        cube.turn(crate::Moves::R);
-        cube.turn(crate::Moves::L2);
-        cube.turn(crate::Moves::B_);
-        cube.turn(crate::Moves::R_);
+        cube.turn(crate::Turn::D2);
+        cube.turn(crate::Turn::R);
+        cube.turn(crate::Turn::L2);
+        cube.turn(crate::Turn::B_);
+        cube.turn(crate::Turn::R_);
 
         println!("{}", cube);
 
