@@ -5,7 +5,9 @@ use rand::{
     Rng,
 };
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+use crate::CubeError;
+
+#[derive(Debug, PartialEq)]
 pub enum Turn {
     L,  // Clockwise Left turn
     R,  // Clockwise Right turn
@@ -54,27 +56,33 @@ impl Display for Turn {
 
 impl Distribution<Turn> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Turn {
-        match rng.gen_range(0..18) {
-            0 => Turn::L,
-            1 => Turn::R,
-            2 => Turn::F,
-            3 => Turn::B,
-            4 => Turn::U,
-            5 => Turn::D,
+        let sampled_idx: u8 = rng.gen_range(0..18);
+        Turn::from_u8(sampled_idx).unwrap()
+    }
+}
 
-            6 => Turn::L_,
-            7 => Turn::R_,
-            8 => Turn::F_,
-            9 => Turn::B_,
-            10 => Turn::U_,
-            11 => Turn::D_,
-
-            12 => Turn::L2,
-            13 => Turn::R2,
-            14 => Turn::F2,
-            15 => Turn::B2,
-            16 => Turn::U2,
-            _ => Turn::D2,
+impl Turn {
+    pub fn from_u8(value: u8) -> Result<Self, CubeError> {
+        match value {
+            0u8 => Ok(Turn::L),
+            1u8 => Ok(Turn::R),
+            2u8 => Ok(Turn::F),
+            3u8 => Ok(Turn::B),
+            4u8 => Ok(Turn::U),
+            5u8 => Ok(Turn::D),
+            6u8 => Ok(Turn::L_),
+            7u8 => Ok(Turn::R_),
+            8u8 => Ok(Turn::F_),
+            9u8 => Ok(Turn::B_),
+            10u8 => Ok(Turn::U_),
+            11u8 => Ok(Turn::D_),
+            12u8 => Ok(Turn::L2),
+            13u8 => Ok(Turn::R2),
+            14u8 => Ok(Turn::F2),
+            15u8 => Ok(Turn::B2),
+            16u8 => Ok(Turn::U2),
+            17u8 => Ok(Turn::D2),
+            _ => Err(CubeError::InvalidTurn(value)),
         }
     }
 }

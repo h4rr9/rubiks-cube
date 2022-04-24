@@ -6,7 +6,7 @@ use crate::cubies::Faces;
 pub enum CubeError {
     InvalidFaceOrder(Faces, usize),
     InvalidFaceletColor,
-    InvalidTurn,
+    InvalidTurn(u8),
 }
 
 impl std::error::Error for CubeError {}
@@ -22,7 +22,13 @@ impl fmt::Display for CubeError {
                 face_found
             ),
             CubeError::InvalidFaceletColor => write!(f, "Invalid Facelet color"),
-            CubeError::InvalidTurn => write!(f, "Invalid Turn"),
+            CubeError::InvalidTurn(index) => {
+                write!(
+                    f,
+                    "Invalid Turn, Expected int between 0 and 17 got {}",
+                    index
+                )
+            }
         }
     }
 }
