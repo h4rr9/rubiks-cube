@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::CubeError;
 
 #[derive(PartialEq, Clone, Copy, Debug, PartialOrd)]
+#[repr(u8)]
 pub enum MetricKind {
     QuarterTurnMetric = 12,
     HalfTurnMetric = 18,
@@ -18,6 +19,7 @@ impl Display for MetricKind {
 }
 
 #[derive(Debug, PartialEq)]
+#[repr(u8)]
 pub enum Turn {
     L,  // Clockwise Left turn
     R,  // Clockwise Right turn
@@ -85,7 +87,7 @@ impl Turn {
             15u8 => Ok(Turn::B2),
             16u8 => Ok(Turn::U2),
             17u8 => Ok(Turn::D2),
-            _ => Err(CubeError::InvalidTurn(value)),
+            _ => Err(CubeError::InvalidTurn(value, 0)), // code never reaches here, check done in turn
         }
     }
 }

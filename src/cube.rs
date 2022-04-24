@@ -197,7 +197,7 @@ impl Cube {
     /// ```
     pub fn turn(&mut self, twist: u8) -> Result<(), CubeError> {
         if twist >= self.turn_metric as u8 {
-            Err(CubeError::InvalidTurn(twist))
+            Err(CubeError::InvalidTurn(twist, self.turn_metric as u8))
         } else {
             let t: Turn = Turn::from_u8(twist)?;
             self._turn(t);
