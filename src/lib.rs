@@ -22,4 +22,4 @@ extern crate strum_macros;
 
 pub use cube::Cube;
 pub use errors::CubeError;
-pub use moves::Turn;
+pub use moves::{MetricKind, Turn};

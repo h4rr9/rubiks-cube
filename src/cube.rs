@@ -2,10 +2,12 @@ use std::fmt::Display;
 
 use std::str::FromStr;
 
+use rand::distributions::{Distribution, Uniform};
+
 use crate::{
     cubies::*,
     errors::CubeError,
-    moves::Turn,
+    moves::{MetricKind, Turn},
     orientation::{CornerOrientation, EdgeOrientation},
     permutation::Permutation,
 };
@@ -17,15 +19,17 @@ pub struct Cube {
     corner_orientation: CornerOrientation,
     edge_permutation: Permutation,
     corner_permutation: Permutation,
+    turn_metric: MetricKind,
 }
 
 impl Cube {
-    pub fn new() -> Cube {
+    pub fn new(turn_metric: MetricKind) -> Cube {
         Cube {
             edge_orientation: EdgeOrientation::new(),
             corner_orientation: CornerOrientation::new(),
             edge_permutation: Permutation::new(NUM_EDGES),
             corner_permutation: Permutation::new(NUM_CORNERS),
+            turn_metric,
         }
     }
 
@@ -42,12 +46,15 @@ impl Cube {
     /// # Examples
     ///
     /// ```
-    /// use crate::rubikscube::Cube;
+    /// use crate::rubikscube::{Cube, MetricKind};
     /// let cube_array =
     /// [[["W";3];3],[["Y";3];3],[["G";3];3],[["B";3];3],[["R";3];3],[["O";3];3]];
-    /// let cube = Cube::cube_from_array(&cube_array);
+    /// let cube = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric);
     /// ```
-    pub fn cube_from_array(cube_array: &[[[&str; 3]; 3]; 6]) -> Result<Cube, CubeError> {
+    pub fn cube_from_array(
+        cube_array: &[[[&str; 3]; 3]; 6],
+        turn_metric: MetricKind,
+    ) -> Result<Cube, CubeError> {
         let mut cube_faces = [[[Faces::White; 3]; 3]; 6];
 
         for (i, face) in cube_array.iter().enumerate() {
@@ -62,7 +69,7 @@ impl Cube {
             }
         }
 
-        Ok(Cube::cube_from_faces(&cube_faces))
+        Ok(Cube::cube_from_faces(&cube_faces, turn_metric))
     }
 
     /// Initializes a Cube object with values from 6 x 3 x 3 array of Face instances.
@@ -73,7 +80,7 @@ impl Cube {
     ///
     /// * `cube_faces` - 6 x 3 x 3 array of Face instances
     ///
-    fn cube_from_faces(cube_faces: &[[[Faces; 3]; 3]; 6]) -> Cube {
+    fn cube_from_faces(cube_faces: &[[[Faces; 3]; 3]; 6], turn_metric: MetricKind) -> Cube {
         let mut edge_permutation = vec![0u8; NUM_EDGES as usize];
         let mut corner_permutation = vec![0u8; NUM_CORNERS as usize];
         let mut edge_orientation = EdgeOrientation::new();
@@ -137,6 +144,7 @@ impl Cube {
             corner_orientation,
             edge_permutation,
             corner_permutation,
+            turn_metric,
         }
     }
 
@@ -150,15 +158,21 @@ impl Cube {
     ///
     /// ```
     /// use rubikscube::Cube;
+    /// use rubikscube::MetricKind;
     /// let num_scramble_turns = 100;
     ///
-    /// let cube = Cube::scramble(num_scramble_turns);
+    /// let cube = Cube::scramble(num_scramble_turns, MetricKind::HalfTurnMetric);
     /// ```
-    pub fn scramble(num_turns: u32) -> Cube {
-        let mut cube = Cube::new();
+    pub fn scramble(num_turns: u32, turn_metric: MetricKind) -> Cube {
+        let mut cube = Cube::new(turn_metric);
+
+        let between = Uniform::from(0..cube.turn_metric as u8);
+        let mut rng = rand::thread_rng();
 
         for _ in 0..num_turns {
-            cube.turn(rand::random::<Turn>());
+            let sampled_index: u8 = between.sample(&mut rng);
+            let sampled_turn: Turn = Turn::from_u8(sampled_index).unwrap();
+            cube._turn(sampled_turn);
         }
 
         assert_eq!(
@@ -167,6 +181,29 @@ impl Cube {
         );
         cube
     }
+    /// Performs the specified turn on the cube object.
+    ///
+    /// # Arguments
+    ///
+    /// * `twist` - index of turn enum variant
+    ///
+    /// # ExamplesCube
+    ///
+    /// ```
+    /// use rubikscube::{Cube, Turn, MetricKind};
+    ///
+    /// let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// cube.turn(0); // Turn L
+    /// ```
+    pub fn turn(&mut self, twist: u8) -> Result<(), CubeError> {
+        if twist >= self.turn_metric as u8 {
+            Err(CubeError::InvalidTurn(twist, self.turn_metric as u8))
+        } else {
+            let t: Turn = Turn::from_u8(twist)?;
+            self._turn(t);
+            Ok(())
+        }
+    }
 
     /// Performs the specified turn on the cube object.
     ///
@@ -174,15 +211,7 @@ impl Cube {
     ///
     /// * `m` - instance of Turn enum
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rubikscube::{Cube, Turn};
-    ///
-    /// let mut cube = Cube::new();
-    /// cube.turn(Turn::F)
-    /// ```
-    pub fn turn(&mut self, m: Turn) {
+    fn _turn(&mut self, m: Turn) {
         // unpack cubicle indices
         let ((a, b, c, d), (w, x, y, z)) = match m {
             Turn::L | Turn::L_ | Turn::L2 => (L_EDGE_CUBICLES, L_CORNER_CUBICLES),
@@ -255,6 +284,7 @@ impl Cube {
     ///
     /// ```
     /// use rubikscube::Cube;
+    /// use rubikscube::MetricKind;
     ///
     ///    let cube_array = [
     ///        [["O", "Y", "O"], ["G", "W", "B"], ["O", "G", "B"]], // W
@@ -265,7 +295,7 @@ impl Cube {
     ///        [["R", "B", "Y"], ["W", "O", "W"], ["W", "O", "O"]], // O
     ///    ];
     ///
-    /// let cube = Cube::cube_from_array(&cube_array).unwrap();
+    /// let cube = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap();
     ///
     /// assert!(cube.is_solvable());
     /// ```
@@ -314,6 +344,10 @@ impl Cube {
         }
 
         repr
+    }
+
+    pub fn turn_metric(&self) -> MetricKind {
+        self.turn_metric
     }
 }
 
@@ -422,11 +456,11 @@ mod tests {
 
     use crate::cubies::Faces;
     use crate::errors::CubeError;
-    use crate::{Cube, Turn};
+    use crate::{Cube, MetricKind, Turn};
 
     #[test]
     fn cube_sanity_test() {
-        let cube = Cube::new();
+        let cube = Cube::new(crate::moves::MetricKind::HalfTurnMetric);
         assert_eq!(
             cube.edge_permutation.parity(),
             cube.corner_permutation.parity()
@@ -437,85 +471,85 @@ mod tests {
     }
     #[test]
     fn cube_undo_turn_test() {
-        let solved_cube = Cube::new();
-        let mut cube = Cube::new();
+        let solved_cube = Cube::new(crate::moves::MetricKind::HalfTurnMetric);
+        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
 
-        cube.turn(Turn::L);
-        cube.turn(Turn::L_);
-
-        assert_eq!(cube, solved_cube);
-
-        cube.turn(Turn::L2);
-        cube.turn(Turn::L2);
+        cube._turn(Turn::L);
+        cube._turn(Turn::L_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::R);
-        cube.turn(Turn::R_);
+        cube._turn(Turn::L2);
+        cube._turn(Turn::L2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::R2);
-        cube.turn(Turn::R2);
+        cube._turn(Turn::R);
+        cube._turn(Turn::R_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::U);
-        cube.turn(Turn::U_);
+        cube._turn(Turn::R2);
+        cube._turn(Turn::R2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::U2);
-        cube.turn(Turn::U2);
+        cube._turn(Turn::U);
+        cube._turn(Turn::U_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::D);
-        cube.turn(Turn::D_);
+        cube._turn(Turn::U2);
+        cube._turn(Turn::U2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::D2);
-        cube.turn(Turn::D2);
+        cube._turn(Turn::D);
+        cube._turn(Turn::D_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::F);
-        cube.turn(Turn::F_);
+        cube._turn(Turn::D2);
+        cube._turn(Turn::D2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::F2);
-        cube.turn(Turn::F2);
+        cube._turn(Turn::F);
+        cube._turn(Turn::F_);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::B);
-        cube.turn(Turn::B_);
+        cube._turn(Turn::F2);
+        cube._turn(Turn::F2);
 
         assert_eq!(cube, solved_cube);
 
-        cube.turn(Turn::B2);
-        cube.turn(Turn::B2);
+        cube._turn(Turn::B);
+        cube._turn(Turn::B_);
+
+        assert_eq!(cube, solved_cube);
+
+        cube._turn(Turn::B2);
+        cube._turn(Turn::B2);
 
         assert_eq!(cube, solved_cube);
     }
 
     #[test]
     fn cube_turns_test() {
-        let _cube = Cube::scramble(32);
+        let _cube = Cube::scramble(32, MetricKind::HalfTurnMetric);
     }
 
     #[test]
     fn smove_test() {
-        let mut cube = Cube::new();
-        let solved_cube = Cube::new();
+        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+        let solved_cube = Cube::new(MetricKind::HalfTurnMetric);
 
         for _ in 0..7 {
-            cube.turn(Turn::U);
-            cube.turn(Turn::R);
-            cube.turn(Turn::R_);
-            cube.turn(Turn::U_);
+            cube._turn(Turn::U);
+            cube._turn(Turn::R);
+            cube._turn(Turn::R_);
+            cube._turn(Turn::U_);
         }
 
         assert_eq!(cube, solved_cube);
@@ -523,7 +557,7 @@ mod tests {
 
     #[test]
     fn cube_solvable_test() {
-        let cube = Cube::scramble(32);
+        let cube = Cube::scramble(32, MetricKind::HalfTurnMetric);
 
         assert_eq!(
             cube.edge_permutation.parity(),
@@ -537,33 +571,33 @@ mod tests {
     #[test]
     fn random_scramble() {
         // B' R U2 R U R' L' U2 F B' D2 F2 D' L B2 D2 R2 L D' L D2 R L2 B' R'
-        let mut cube = Cube::new();
+        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
 
-        cube.turn(Turn::B_);
-        cube.turn(Turn::R);
-        cube.turn(Turn::U2);
-        cube.turn(Turn::R);
-        cube.turn(Turn::U);
-        cube.turn(Turn::R_);
-        cube.turn(Turn::L_);
-        cube.turn(Turn::U2);
-        cube.turn(Turn::F);
-        cube.turn(Turn::B_);
-        cube.turn(Turn::D2);
-        cube.turn(Turn::F2);
-        cube.turn(Turn::D_);
-        cube.turn(Turn::L);
-        cube.turn(Turn::B2);
-        cube.turn(Turn::D2);
-        cube.turn(Turn::R2);
-        cube.turn(Turn::L);
-        cube.turn(Turn::D_);
-        cube.turn(Turn::L);
-        cube.turn(Turn::D2);
-        cube.turn(Turn::R);
-        cube.turn(Turn::L2);
-        cube.turn(Turn::B_);
-        cube.turn(Turn::R_);
+        cube._turn(Turn::B_);
+        cube._turn(Turn::R);
+        cube._turn(Turn::U2);
+        cube._turn(Turn::R);
+        cube._turn(Turn::U);
+        cube._turn(Turn::R_);
+        cube._turn(Turn::L_);
+        cube._turn(Turn::U2);
+        cube._turn(Turn::F);
+        cube._turn(Turn::B_);
+        cube._turn(Turn::D2);
+        cube._turn(Turn::F2);
+        cube._turn(Turn::D_);
+        cube._turn(Turn::L);
+        cube._turn(Turn::B2);
+        cube._turn(Turn::D2);
+        cube._turn(Turn::R2);
+        cube._turn(Turn::L);
+        cube._turn(Turn::D_);
+        cube._turn(Turn::L);
+        cube._turn(Turn::D2);
+        cube._turn(Turn::R);
+        cube._turn(Turn::L2);
+        cube._turn(Turn::B_);
+        cube._turn(Turn::R_);
 
         println!("{}", cube);
 
@@ -576,7 +610,8 @@ mod tests {
             [["R", "B", "Y"], ["W", "O", "W"], ["W", "O", "O"]], // O
         ];
 
-        let cube_from_array = Cube::cube_from_array(&cube_array).unwrap();
+        let cube_from_array =
+            Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap();
 
         assert!(cube_from_array.is_solvable());
 
@@ -594,9 +629,9 @@ mod tests {
             [["R"; 3]; 3],
             [["O"; 3]; 3],
         ];
-        let cube = Cube::cube_from_array(&cube_array).unwrap();
+        let cube = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap();
 
-        let solved_cube = Cube::new();
+        let solved_cube = Cube::new(MetricKind::HalfTurnMetric);
         assert!(cube.is_solvable());
         assert_eq!(cube, solved_cube);
     }
@@ -611,7 +646,7 @@ mod tests {
             [["R"; 3]; 3],
             [["O"; 3]; 3],
         ];
-        let cube_err = Cube::cube_from_array(&cube_array).unwrap_err();
+        let cube_err = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap_err();
 
         assert_eq!(cube_err, CubeError::InvalidFaceOrder(Faces::Blue, 2));
     }
@@ -626,14 +661,14 @@ mod tests {
             [["R"; 3]; 3],
             [["O"; 3]; 3],
         ];
-        let cube_err = Cube::cube_from_array(&cube_array).unwrap_err();
+        let cube_err = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap_err();
 
         assert_eq!(cube_err, CubeError::InvalidFaceletColor);
     }
 
     #[test]
     fn representation_test() {
-        let cube = Cube::new();
+        let cube = Cube::new(MetricKind::HalfTurnMetric);
 
         let expeceted_repr = [
             [
@@ -731,5 +766,11 @@ mod tests {
         for (x, y) in repr.iter().zip(expeceted_repr_flattened.iter()) {
             assert_eq!(x, y);
         }
+    }
+
+    #[test]
+    fn cube_quarter_turn_test() {
+        let cube = Cube::scramble(100, MetricKind::QuarterTurnMetric);
+        assert!(cube.is_solvable());
     }
 }
