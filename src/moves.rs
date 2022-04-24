@@ -7,6 +7,12 @@ use rand::{
 
 use crate::CubeError;
 
+#[derive(PartialEq, Clone, Copy, Debug, PartialOrd)]
+pub enum MetricKind {
+    QuarterTurnMetric = 12,
+    HalfTurnMetric = 18,
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Turn {
     L,  // Clockwise Left turn

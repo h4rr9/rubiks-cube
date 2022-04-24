@@ -5,7 +5,7 @@ use std::str::FromStr;
 use crate::{
     cubies::*,
     errors::CubeError,
-    moves::Turn,
+    moves::{MetricKind, Turn},
     orientation::{CornerOrientation, EdgeOrientation},
     permutation::Permutation,
 };
@@ -17,15 +17,17 @@ pub struct Cube {
     corner_orientation: CornerOrientation,
     edge_permutation: Permutation,
     corner_permutation: Permutation,
+    turn_metric: MetricKind,
 }
 
 impl Cube {
-    pub fn new() -> Cube {
+    pub fn new(turn_metric: MetricKind) -> Cube {
         Cube {
             edge_orientation: EdgeOrientation::new(),
             corner_orientation: CornerOrientation::new(),
             edge_permutation: Permutation::new(NUM_EDGES),
             corner_permutation: Permutation::new(NUM_CORNERS),
+            turn_metric,
         }
     }
 
@@ -42,12 +44,15 @@ impl Cube {
     /// # Examples
     ///
     /// ```
-    /// use crate::rubikscube::Cube;
+    /// use crate::rubikscube::{Cube, MetricKind};
     /// let cube_array =
     /// [[["W";3];3],[["Y";3];3],[["G";3];3],[["B";3];3],[["R";3];3],[["O";3];3]];
-    /// let cube = Cube::cube_from_array(&cube_array);
+    /// let cube = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric);
     /// ```
-    pub fn cube_from_array(cube_array: &[[[&str; 3]; 3]; 6]) -> Result<Cube, CubeError> {
+    pub fn cube_from_array(
+        cube_array: &[[[&str; 3]; 3]; 6],
+        turn_metric: MetricKind,
+    ) -> Result<Cube, CubeError> {
         let mut cube_faces = [[[Faces::White; 3]; 3]; 6];
 
         for (i, face) in cube_array.iter().enumerate() {
@@ -62,7 +67,7 @@ impl Cube {
             }
         }
 
-        Ok(Cube::cube_from_faces(&cube_faces))
+        Ok(Cube::cube_from_faces(&cube_faces, turn_metric))
     }
 
     /// Initializes a Cube object with values from 6 x 3 x 3 array of Face instances.
@@ -73,7 +78,7 @@ impl Cube {
     ///
     /// * `cube_faces` - 6 x 3 x 3 array of Face instances
     ///
-    fn cube_from_faces(cube_faces: &[[[Faces; 3]; 3]; 6]) -> Cube {
+    fn cube_from_faces(cube_faces: &[[[Faces; 3]; 3]; 6], turn_metric: MetricKind) -> Cube {
         let mut edge_permutation = vec![0u8; NUM_EDGES as usize];
         let mut corner_permutation = vec![0u8; NUM_CORNERS as usize];
         let mut edge_orientation = EdgeOrientation::new();
@@ -137,6 +142,7 @@ impl Cube {
             corner_orientation,
             edge_permutation,
             corner_permutation,
+            turn_metric,
         }
     }
 
@@ -155,7 +161,7 @@ impl Cube {
     /// let cube = Cube::scramble(num_scramble_turns);
     /// ```
     pub fn scramble(num_turns: u32) -> Cube {
-        let mut cube = Cube::new();
+        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
 
         for _ in 0..num_turns {
             cube._turn(rand::random::<Turn>());
@@ -180,13 +186,13 @@ impl Cube {
     ///
     /// * `m` - instance of Turn enum
     ///
-    /// # Examples
+    /// # ExamplesCube
     ///
     /// ```
-    /// use rubikscube::{Cube, Turn};
+    /// use rubikscube::{Cube, Turn, MetricKind};
     ///
-    /// let mut cube = Cube::new();
-    /// cube.turn(Turn::F)
+    /// let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// cube._turn(Turn::F)
     /// ```
     pub fn _turn(&mut self, m: Turn) {
         // unpack cubicle indices
@@ -261,6 +267,7 @@ impl Cube {
     ///
     /// ```
     /// use rubikscube::Cube;
+    /// use rubikscube::MetricKind;
     ///
     ///    let cube_array = [
     ///        [["O", "Y", "O"], ["G", "W", "B"], ["O", "G", "B"]], // W
@@ -271,7 +278,7 @@ impl Cube {
     ///        [["R", "B", "Y"], ["W", "O", "W"], ["W", "O", "O"]], // O
     ///    ];
     ///
-    /// let cube = Cube::cube_from_array(&cube_array).unwrap();
+    /// let cube = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap();
     ///
     /// assert!(cube.is_solvable());
     /// ```
@@ -428,11 +435,11 @@ mod tests {
 
     use crate::cubies::Faces;
     use crate::errors::CubeError;
-    use crate::{Cube, Turn};
+    use crate::{Cube, MetricKind, Turn};
 
     #[test]
     fn cube_sanity_test() {
-        let cube = Cube::new();
+        let cube = Cube::new(crate::moves::MetricKind::HalfTurnMetric);
         assert_eq!(
             cube.edge_permutation.parity(),
             cube.corner_permutation.parity()
@@ -443,8 +450,8 @@ mod tests {
     }
     #[test]
     fn cube_undo_turn_test() {
-        let solved_cube = Cube::new();
-        let mut cube = Cube::new();
+        let solved_cube = Cube::new(crate::moves::MetricKind::HalfTurnMetric);
+        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
 
         cube._turn(Turn::L);
         cube._turn(Turn::L_);
@@ -514,8 +521,8 @@ mod tests {
 
     #[test]
     fn smove_test() {
-        let mut cube = Cube::new();
-        let solved_cube = Cube::new();
+        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+        let solved_cube = Cube::new(MetricKind::HalfTurnMetric);
 
         for _ in 0..7 {
             cube._turn(Turn::U);
@@ -543,7 +550,7 @@ mod tests {
     #[test]
     fn random_scramble() {
         // B' R U2 R U R' L' U2 F B' D2 F2 D' L B2 D2 R2 L D' L D2 R L2 B' R'
-        let mut cube = Cube::new();
+        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
 
         cube._turn(Turn::B_);
         cube._turn(Turn::R);
@@ -582,7 +589,8 @@ mod tests {
             [["R", "B", "Y"], ["W", "O", "W"], ["W", "O", "O"]], // O
         ];
 
-        let cube_from_array = Cube::cube_from_array(&cube_array).unwrap();
+        let cube_from_array =
+            Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap();
 
         assert!(cube_from_array.is_solvable());
 
@@ -600,9 +608,9 @@ mod tests {
             [["R"; 3]; 3],
             [["O"; 3]; 3],
         ];
-        let cube = Cube::cube_from_array(&cube_array).unwrap();
+        let cube = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap();
 
-        let solved_cube = Cube::new();
+        let solved_cube = Cube::new(MetricKind::HalfTurnMetric);
         assert!(cube.is_solvable());
         assert_eq!(cube, solved_cube);
     }
@@ -617,7 +625,7 @@ mod tests {
             [["R"; 3]; 3],
             [["O"; 3]; 3],
         ];
-        let cube_err = Cube::cube_from_array(&cube_array).unwrap_err();
+        let cube_err = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap_err();
 
         assert_eq!(cube_err, CubeError::InvalidFaceOrder(Faces::Blue, 2));
     }
@@ -632,14 +640,14 @@ mod tests {
             [["R"; 3]; 3],
             [["O"; 3]; 3],
         ];
-        let cube_err = Cube::cube_from_array(&cube_array).unwrap_err();
+        let cube_err = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap_err();
 
         assert_eq!(cube_err, CubeError::InvalidFaceletColor);
     }
 
     #[test]
     fn representation_test() {
-        let cube = Cube::new();
+        let cube = Cube::new(MetricKind::HalfTurnMetric);
 
         let expeceted_repr = [
             [
