@@ -345,6 +345,10 @@ impl Cube {
 
         repr
     }
+
+    pub fn turn_metric(&self) -> MetricKind {
+        self.turn_metric
+    }
 }
 
 impl Display for Cube {
