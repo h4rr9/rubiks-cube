@@ -1,16 +1,20 @@
 use std::fmt::Display;
 
-use rand::{
-    distributions::{Distribution, Standard},
-    Rng,
-};
-
 use crate::CubeError;
 
 #[derive(PartialEq, Clone, Copy, Debug, PartialOrd)]
 pub enum MetricKind {
     QuarterTurnMetric = 12,
     HalfTurnMetric = 18,
+}
+
+impl Display for MetricKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MetricKind::QuarterTurnMetric => write!(f, "QuarterTurnMetric"),
+            MetricKind::HalfTurnMetric => write!(f, "HalfTurnMetric"),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -57,13 +61,6 @@ impl Display for Turn {
             Turn::U2 => write!(f, "U2 "),
             Turn::D2 => write!(f, "D2 "),
         }
-    }
-}
-
-impl Distribution<Turn> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Turn {
-        let sampled_idx: u8 = rng.gen_range(0..18);
-        Turn::from_u8(sampled_idx).unwrap()
     }
 }
 

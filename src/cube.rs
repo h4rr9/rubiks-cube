@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use std::str::FromStr;
 
+use rand::distributions::{Distribution, Uniform};
+
 use crate::{
     cubies::*,
     errors::CubeError,
@@ -156,15 +158,21 @@ impl Cube {
     ///
     /// ```
     /// use rubikscube::Cube;
+    /// use rubikscube::MetricKind;
     /// let num_scramble_turns = 100;
     ///
-    /// let cube = Cube::scramble(num_scramble_turns);
+    /// let cube = Cube::scramble(num_scramble_turns, MetricKind::HalfTurnMetric);
     /// ```
-    pub fn scramble(num_turns: u32) -> Cube {
-        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+    pub fn scramble(num_turns: u32, turn_metric: MetricKind) -> Cube {
+        let mut cube = Cube::new(turn_metric);
+
+        let between = Uniform::from(0..cube.turn_metric as u8);
+        let mut rng = rand::thread_rng();
 
         for _ in 0..num_turns {
-            cube._turn(rand::random::<Turn>());
+            let sampled_index: u8 = between.sample(&mut rng);
+            let sampled_turn: Turn = Turn::from_u8(sampled_index).unwrap();
+            cube._turn(sampled_turn);
         }
 
         assert_eq!(
@@ -173,11 +181,28 @@ impl Cube {
         );
         cube
     }
-
+    /// Performs the specified turn on the cube object.
+    ///
+    /// # Arguments
+    ///
+    /// * `twist` - index of turn enum variant
+    ///
+    /// # ExamplesCube
+    ///
+    /// ```
+    /// use rubikscube::{Cube, Turn, MetricKind};
+    ///
+    /// let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// cube.turn(0); // Turn L
+    /// ```
     pub fn turn(&mut self, twist: u8) -> Result<(), CubeError> {
-        let t: Turn = Turn::from_u8(twist)?;
-        self._turn(t);
-        Ok(())
+        if twist >= self.turn_metric as u8 {
+            Err(CubeError::InvalidTurn(twist))
+        } else {
+            let t: Turn = Turn::from_u8(twist)?;
+            self._turn(t);
+            Ok(())
+        }
     }
 
     /// Performs the specified turn on the cube object.
@@ -186,15 +211,7 @@ impl Cube {
     ///
     /// * `m` - instance of Turn enum
     ///
-    /// # ExamplesCube
-    ///
-    /// ```
-    /// use rubikscube::{Cube, Turn, MetricKind};
-    ///
-    /// let mut cube = Cube::new(MetricKind::HalfTurnMetric);
-    /// cube._turn(Turn::F)
-    /// ```
-    pub fn _turn(&mut self, m: Turn) {
+    fn _turn(&mut self, m: Turn) {
         // unpack cubicle indices
         let ((a, b, c, d), (w, x, y, z)) = match m {
             Turn::L | Turn::L_ | Turn::L2 => (L_EDGE_CUBICLES, L_CORNER_CUBICLES),
@@ -516,7 +533,7 @@ mod tests {
 
     #[test]
     fn cube_turns_test() {
-        let _cube = Cube::scramble(32);
+        let _cube = Cube::scramble(32, MetricKind::HalfTurnMetric);
     }
 
     #[test]
@@ -536,7 +553,7 @@ mod tests {
 
     #[test]
     fn cube_solvable_test() {
-        let cube = Cube::scramble(32);
+        let cube = Cube::scramble(32, MetricKind::HalfTurnMetric);
 
         assert_eq!(
             cube.edge_permutation.parity(),
@@ -745,5 +762,11 @@ mod tests {
         for (x, y) in repr.iter().zip(expeceted_repr_flattened.iter()) {
             assert_eq!(x, y);
         }
+    }
+
+    #[test]
+    fn cube_quarter_turn_test() {
+        let cube = Cube::scramble(100, MetricKind::QuarterTurnMetric);
+        assert!(cube.is_solvable());
     }
 }
