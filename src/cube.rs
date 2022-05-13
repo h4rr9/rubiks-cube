@@ -384,25 +384,19 @@ impl Cube {
     ///
     /// ```
     pub fn solved(&self) -> bool {
-        let corner_edges_pos: Vec<_> = self
-            .representation()
-            .into_iter()
-            .enumerate()
-            .filter(|&(_, x)| x == true)
-            .map(|(idx, _)| idx)
-            .collect();
+        let repr = self.representation();
+        let mut solved = true;
 
-        let (corner_pos, edges_pos) = corner_edges_pos.split_at(NUM_CORNERS as usize);
+        for i in 0..12 {
+            // corner check
+            if i < 8 {
+                solved &= repr[i * 27];
+            }
+            // edges check
+            solved &= repr[i * 26 + 192];
+        }
 
-        // corners and edges must be in these positions for the cube to be solved
-        corner_pos
-            .into_iter()
-            .enumerate()
-            .all(|(idx, &val)| val == idx * 27)
-            && edges_pos
-                .into_iter()
-                .enumerate()
-                .all(|(idx, &val)| val == idx * 26 + 192)
+        solved
     }
 }
 
