@@ -328,7 +328,6 @@ impl Cube {
             let index = NUM_STATES * cubie_idx as usize
                 + NUM_CORNER_ORIENTATION * corner_idx as usize
                 + cubie_orientation;
-            println!("{}", index);
             repr[index] = true;
         }
 
@@ -339,7 +338,6 @@ impl Cube {
             let index = (NUM_STATES * (cubie_idx + NUM_CORNERS) as usize
                 + NUM_EDGE_ORIENTATION * edge_idx as usize
                 + cubie_orientation) as usize;
-            println!("{}", index);
             repr[index] = true;
         }
 
@@ -363,6 +361,48 @@ impl Cube {
     /// ```
     pub fn turn_metric(&self) -> MetricKind {
         self.turn_metric
+    }
+
+    /// returns true if cube is solved
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rubikscube::Cube;
+    /// use rubikscube::Turn;
+    /// use rubikscube::MetricKind;
+    ///
+    ///
+    /// let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// cube.turn(Turn::L as u8);
+    /// cube.turn(Turn::F as u8);
+    /// cube.turn(Turn::R as u8);
+    /// cube.turn(Turn::R_ as u8);
+    /// cube.turn(Turn::F_ as u8);
+    /// cube.turn(Turn::L_ as u8);
+    /// assert!(cube.solved());
+    ///
+    /// ```
+    pub fn solved(&self) -> bool {
+        let corner_edges_pos: Vec<_> = self
+            .representation()
+            .into_iter()
+            .enumerate()
+            .filter(|&(_, x)| x == true)
+            .map(|(idx, _)| idx)
+            .collect();
+
+        let (corner_pos, edges_pos) = corner_edges_pos.split_at(NUM_CORNERS as usize);
+
+        // corners and edges must be in these positions for the cube to be solved
+        corner_pos
+            .into_iter()
+            .enumerate()
+            .all(|(idx, &val)| val == idx * 27)
+            && edges_pos
+                .into_iter()
+                .enumerate()
+                .all(|(idx, &val)| val == idx * 26 + 192)
     }
 }
 
