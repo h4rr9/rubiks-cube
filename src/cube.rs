@@ -346,6 +346,21 @@ impl Cube {
         repr
     }
 
+    /// returns the turn metric of the cube
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rubikscube::Cube;
+    /// use rubikscube::MetricKind;
+    ///
+    ///
+    /// let cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// assert!(cube.turn_metric() == MetricKind::HalfTurnMetric);
+    ///
+    /// let another_cube = Cube::new(MetricKind::QuarterTurnMetric);
+    /// assert!(another_cube.turn_metric() == MetricKind::QuarterTurnMetric);
+    /// ```
     pub fn turn_metric(&self) -> MetricKind {
         self.turn_metric
     }
