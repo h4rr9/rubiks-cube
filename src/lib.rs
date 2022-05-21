@@ -23,3 +23,122 @@ extern crate strum_macros;
 pub use cube::Cube;
 pub use errors::CubeError;
 pub use moves::{MetricKind, Turn};
+
+#[cfg(feature = "python")]
+use pyo3::{exceptions::PyIndexError, prelude::*, types::PyType};
+
+#[cfg(feature = "python")]
+#[pyclass(name = "Cube")]
+struct PyCube(Cube, Vec<PyTurn>);
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyCube {
+    #[new]
+    fn new(turn_metric: &PyMetric) -> Self {
+        PyCube(
+            Cube::new(turn_metric.0),
+            Self::all_possible_turns().unwrap(),
+        )
+    }
+    #[classmethod]
+    #[args(num_turns = "100")]
+    fn scramble(_: &PyType, num_turns: u32, turn_metric: &PyMetric) -> Self {
+        PyCube(
+            Cube::scramble(num_turns, turn_metric.0),
+            Self::all_possible_turns().unwrap(),
+        )
+    }
+
+    fn turn(&mut self, twist: u8) -> PyResult<()> {
+        if let Err(err) = self.0.turn(twist) {
+            Err(PyIndexError::new_err(err.to_string()))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn solved(&self) -> bool {
+        self.0.solved()
+    }
+
+    fn __str__(&self) -> String {
+        format!("{}", self.0)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{}", self.0)
+    }
+
+    #[staticmethod]
+    fn all_possible_turns() -> PyResult<Vec<PyTurn>> {
+        Ok(vec![
+            PyTurn(Turn::L),  // 0
+            PyTurn(Turn::R),  // 1
+            PyTurn(Turn::F),  // 2
+            PyTurn(Turn::B),  // 3
+            PyTurn(Turn::U),  // 4
+            PyTurn(Turn::D),  // 5
+            PyTurn(Turn::L_), // 6
+            PyTurn(Turn::R_), // 7
+            PyTurn(Turn::F_), // 8
+            PyTurn(Turn::B_), // 9
+            PyTurn(Turn::U_), // 10
+            PyTurn(Turn::D_), // 11
+            PyTurn(Turn::L2), // 12
+            PyTurn(Turn::R2), // 13
+            PyTurn(Turn::F2), // 14
+            PyTurn(Turn::B2), // 15
+            PyTurn(Turn::U2), // 16
+            PyTurn(Turn::D2), // 17
+        ])
+    }
+
+    fn representation(&self) -> Vec<bool> {
+        Vec::from(self.0.representation())
+    }
+}
+
+#[cfg(feature = "python")]
+#[pyclass(name = "Metric")]
+struct PyMetric(MetricKind);
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyMetric {
+    fn __str__(&self) -> String {
+        format!("{}", self.0)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{}", self.0)
+    }
+}
+
+#[cfg(feature = "python")]
+#[pyclass(name = "Turn")]
+struct PyTurn(Turn);
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyTurn {
+    fn __str__(&self) -> String {
+        format!("{}", self.0)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{}", self.0)
+    }
+}
+
+/// A Python module implemented in Rust.
+#[cfg(feature = "python")]
+#[pymodule]
+fn rcube_env(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    m.add_class::<PyCube>()?;
+    m.add_class::<PyTurn>()?;
+    m.add_class::<PyMetric>()?;
+    m.add("HalfTurnMetric", PyMetric(MetricKind::HalfTurnMetric))?;
+    m.add("QuarterTurnMetric", PyMetric(MetricKind::QuarterTurnMetric))?;
+    Ok(())
+}
