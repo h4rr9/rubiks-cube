@@ -804,7 +804,7 @@ mod tests {
 
         let mut expeceted_repr_flattened = [false; 480];
 
-        for (i, row) in expeceted_repr.into_iter().enumerate() {
+        for (i, row) in expeceted_repr.iter().enumerate() {
             for (j, elem) in row.iter().enumerate() {
                 expeceted_repr_flattened[i * 24usize + j] = *elem
             }
