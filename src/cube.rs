@@ -27,9 +27,29 @@ impl Cube {
         Cube {
             edge_orientation: Orientation::edge(),
             corner_orientation: Orientation::corner(),
-            edge_permutation: Permutation::new(NUM_EDGES),
-            corner_permutation: Permutation::new(NUM_CORNERS),
+            edge_permutation: Permutation::edge(),
+            corner_permutation: Permutation::corner(),
             turn_metric,
+        }
+    }
+
+    pub fn cube_htm() -> Cube {
+        Cube {
+            edge_orientation: Orientation::edge(),
+            corner_orientation: Orientation::corner(),
+            edge_permutation: Permutation::edge(),
+            corner_permutation: Permutation::corner(),
+            turn_metric: MetricKind::HalfTurnMetric,
+        }
+    }
+
+    pub fn cube_qtm() -> Cube {
+        Cube {
+            edge_orientation: Orientation::edge(),
+            corner_orientation: Orientation::corner(),
+            edge_permutation: Permutation::edge(),
+            corner_permutation: Permutation::corner(),
+            turn_metric: MetricKind::QuarterTurnMetric,
         }
     }
 
@@ -192,7 +212,7 @@ impl Cube {
     /// ```
     /// use rubikscube::{Cube, Turn, MetricKind};
     ///
-    /// let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// let mut cube = Cube::cube_htm();
     /// cube.turn(0); // Turn L
     /// ```
     pub fn turn(&mut self, twist: u8) -> Result<(), CubeError> {
@@ -353,10 +373,10 @@ impl Cube {
     /// use rubikscube::MetricKind;
     ///
     ///
-    /// let cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// let cube = Cube::cube_htm();
     /// assert!(cube.turn_metric() == MetricKind::HalfTurnMetric);
     ///
-    /// let another_cube = Cube::new(MetricKind::QuarterTurnMetric);
+    /// let another_cube = Cube::cube_qtm();
     /// assert!(another_cube.turn_metric() == MetricKind::QuarterTurnMetric);
     /// ```
     pub fn turn_metric(&self) -> MetricKind {
@@ -373,7 +393,7 @@ impl Cube {
     /// use rubikscube::MetricKind;
     ///
     ///
-    /// let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+    /// let mut cube = Cube::cube_htm();
     /// cube.turn(Turn::L as u8);
     /// cube.turn(Turn::F as u8);
     /// cube.turn(Turn::R as u8);
@@ -509,7 +529,7 @@ mod tests {
 
     #[test]
     fn cube_sanity_test() {
-        let cube = Cube::new(crate::moves::MetricKind::HalfTurnMetric);
+        let cube = Cube::cube_htm();
         assert_eq!(
             cube.edge_permutation.parity(),
             cube.corner_permutation.parity()
@@ -520,8 +540,8 @@ mod tests {
     }
     #[test]
     fn cube_undo_turn_test() {
-        let solved_cube = Cube::new(crate::moves::MetricKind::HalfTurnMetric);
-        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+        let solved_cube = Cube::cube_htm();
+        let mut cube = Cube::cube_htm();
 
         cube._turn(Turn::L);
         cube._turn(Turn::L_);
@@ -591,8 +611,8 @@ mod tests {
 
     #[test]
     fn smove_test() {
-        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
-        let solved_cube = Cube::new(MetricKind::HalfTurnMetric);
+        let mut cube = Cube::cube_htm();
+        let solved_cube = Cube::cube_htm();
 
         for _ in 0..7 {
             cube._turn(Turn::U);
@@ -620,7 +640,7 @@ mod tests {
     #[test]
     fn random_scramble() {
         // B' R U2 R U R' L' U2 F B' D2 F2 D' L B2 D2 R2 L D' L D2 R L2 B' R'
-        let mut cube = Cube::new(MetricKind::HalfTurnMetric);
+        let mut cube = Cube::cube_htm();
 
         cube._turn(Turn::B_);
         cube._turn(Turn::R);
@@ -680,7 +700,7 @@ mod tests {
         ];
         let cube = Cube::cube_from_array(&cube_array, MetricKind::HalfTurnMetric).unwrap();
 
-        let solved_cube = Cube::new(MetricKind::HalfTurnMetric);
+        let solved_cube = Cube::cube_htm();
         assert!(cube.is_solvable());
         assert_eq!(cube, solved_cube);
     }
@@ -717,7 +737,7 @@ mod tests {
 
     #[test]
     fn representation_test() {
-        let cube = Cube::new(MetricKind::HalfTurnMetric);
+        let cube = Cube::cube_htm();
 
         let expeceted_repr = [
             [

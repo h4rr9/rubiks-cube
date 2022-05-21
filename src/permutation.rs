@@ -1,3 +1,5 @@
+use crate::cubies::{NUM_CORNERS, NUM_EDGES};
+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Permutation {
     permutation: Vec<u8>,
@@ -7,6 +9,18 @@ impl Permutation {
     pub fn new(size: u8) -> Permutation {
         Permutation {
             permutation: (0..size).collect(),
+        }
+    }
+
+    pub fn edge() -> Permutation {
+        Permutation {
+            permutation: (0..NUM_EDGES).collect(),
+        }
+    }
+
+    pub fn corner() -> Permutation {
+        Permutation {
+            permutation: (0..NUM_CORNERS).collect(),
         }
     }
 
