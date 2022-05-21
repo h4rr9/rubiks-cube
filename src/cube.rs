@@ -8,15 +8,15 @@ use crate::{
     cubies::*,
     errors::CubeError,
     moves::{MetricKind, Turn},
-    orientation::{CornerOrientation, EdgeOrientation},
+    orientation::Orientation,
     permutation::Permutation,
 };
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 // Cube object simulation a 3x3x3 Rubik's Cube
 pub struct Cube {
-    edge_orientation: EdgeOrientation,
-    corner_orientation: CornerOrientation,
+    edge_orientation: Orientation,
+    corner_orientation: Orientation,
     edge_permutation: Permutation,
     corner_permutation: Permutation,
     turn_metric: MetricKind,
@@ -25,8 +25,8 @@ pub struct Cube {
 impl Cube {
     pub fn new(turn_metric: MetricKind) -> Cube {
         Cube {
-            edge_orientation: EdgeOrientation::new(),
-            corner_orientation: CornerOrientation::new(),
+            edge_orientation: Orientation::edge(),
+            corner_orientation: Orientation::corner(),
             edge_permutation: Permutation::new(NUM_EDGES),
             corner_permutation: Permutation::new(NUM_CORNERS),
             turn_metric,
@@ -83,8 +83,8 @@ impl Cube {
     fn cube_from_faces(cube_faces: &[[[Faces; 3]; 3]; 6], turn_metric: MetricKind) -> Cube {
         let mut edge_permutation = vec![0u8; NUM_EDGES as usize];
         let mut corner_permutation = vec![0u8; NUM_CORNERS as usize];
-        let mut edge_orientation = EdgeOrientation::new();
-        let mut corner_orientation = CornerOrientation::new();
+        let mut edge_orientation = Orientation::edge();
+        let mut corner_orientation = Orientation::corner();
 
         // sets corner cubies orientation and values
         for (corner_idx, corner) in CORNER_CUBIES.iter().enumerate() {
@@ -107,8 +107,8 @@ impl Cube {
             let primary_facelet: Faces = CORNER_CUBIES[corner_cubie_idx as usize].facelet_a();
 
             match corner_cubie.get_orientation(primary_facelet) {
-                1 => corner_orientation.add_two(corner_cubie_idx),
-                2 => corner_orientation.add_one(corner_cubie_idx),
+                1 => corner_orientation.add(corner_cubie_idx, 2),
+                2 => corner_orientation.add(corner_cubie_idx, 1),
                 _ => {}
             }
         }
@@ -131,7 +131,7 @@ impl Cube {
             let primary_facelet: Faces = EDGE_CUBIES[edge_cubie_idx as usize].facelet_a();
 
             match edge_cubie.get_orientation(primary_facelet) {
-                1 => edge_orientation.add_one(edge_cubie_idx),
+                1 => edge_orientation.add(edge_cubie_idx, 1),
                 _ => {}
             }
         }
@@ -234,15 +234,15 @@ impl Cube {
                 let cubie_y = self.corner_permutation.cubie_in_cubicle(y);
                 let cubie_z = self.corner_permutation.cubie_in_cubicle(z);
 
-                self.corner_orientation.add_one(cubie_w);
-                self.corner_orientation.add_two(cubie_x);
-                self.corner_orientation.add_one(cubie_y);
-                self.corner_orientation.add_two(cubie_z);
+                self.corner_orientation.add(cubie_w, 1);
+                self.corner_orientation.add(cubie_x, 2);
+                self.corner_orientation.add(cubie_y, 1);
+                self.corner_orientation.add(cubie_z, 2);
 
-                self.edge_orientation.add_one(cubie_a);
-                self.edge_orientation.add_one(cubie_b);
-                self.edge_orientation.add_one(cubie_c);
-                self.edge_orientation.add_one(cubie_d);
+                self.edge_orientation.add(cubie_a, 1);
+                self.edge_orientation.add(cubie_b, 1);
+                self.edge_orientation.add(cubie_c, 1);
+                self.edge_orientation.add(cubie_d, 1);
             }
             Turn::F | Turn::B | Turn::F_ | Turn::B_ => {
                 let cubie_w = self.corner_permutation.cubie_in_cubicle(w);
@@ -250,10 +250,10 @@ impl Cube {
                 let cubie_y = self.corner_permutation.cubie_in_cubicle(y);
                 let cubie_z = self.corner_permutation.cubie_in_cubicle(z);
 
-                self.corner_orientation.add_one(cubie_w);
-                self.corner_orientation.add_two(cubie_x);
-                self.corner_orientation.add_one(cubie_y);
-                self.corner_orientation.add_two(cubie_z);
+                self.corner_orientation.add(cubie_w, 1);
+                self.corner_orientation.add(cubie_x, 2);
+                self.corner_orientation.add(cubie_y, 1);
+                self.corner_orientation.add(cubie_z, 2);
             }
             _ => {}
         }
