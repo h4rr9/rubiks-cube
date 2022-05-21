@@ -1,4 +1,4 @@
-use crate::cubies::{NUM_CORNERS, NUM_EDGES};
+use crate::cubies::{NUM_CORNERS, NUM_CORNER_ORIENTATION, NUM_EDGES, NUM_EDGE_ORIENTATION};
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Orientation {
@@ -10,14 +10,14 @@ impl Orientation {
     pub fn edge() -> Orientation {
         Self {
             orientations: vec![0; NUM_EDGES as usize],
-            n_orientation: 2,
+            n_orientation: NUM_EDGE_ORIENTATION,
         }
     }
 
     pub fn corner() -> Orientation {
         Self {
             orientations: vec![0; NUM_CORNERS as usize],
-            n_orientation: 3,
+            n_orientation: NUM_CORNER_ORIENTATION,
         }
     }
 
@@ -75,7 +75,10 @@ impl Orientation {
 #[cfg(test)]
 mod tests {
     use super::Orientation;
-    use crate::cubies::{Corner, Edge, CORNER_CUBIES, EDGE_CUBIES, NUM_CORNERS, NUM_EDGES};
+    use crate::cubies::{
+        Corner, Edge, CORNER_CUBIES, EDGE_CUBIES, NUM_CORNERS, NUM_CORNER_ORIENTATION, NUM_EDGES,
+        NUM_EDGE_ORIENTATION,
+    };
 
     impl Orientation {
         pub fn edge_by_index(&self, idx: u8) -> &Edge {
@@ -89,7 +92,11 @@ mod tests {
         pub fn new_with_orientation(o: Vec<u8>) -> Orientation {
             assert!(o.len() == NUM_EDGES as usize || o.len() == NUM_CORNERS as usize);
             Orientation {
-                n_orientation: if o.len() == NUM_EDGES as usize { 2 } else { 3 },
+                n_orientation: if o.len() == NUM_EDGES as usize {
+                    NUM_EDGE_ORIENTATION
+                } else {
+                    NUM_CORNER_ORIENTATION
+                },
                 orientations: o,
             }
         }
@@ -109,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn first_orientation_test() {
+    fn first_edge_orientation_test() {
         let edge_set = Orientation::new_with_orientation(vec![1; NUM_EDGES as usize]);
 
         for i in 0..NUM_EDGES {
@@ -119,7 +126,7 @@ mod tests {
     }
 
     #[test]
-    fn add_one_test() {
+    fn add_one_edge_test() {
         let mut edge_set = Orientation::new_with_orientation(vec![1; NUM_EDGES as usize]);
 
         for i in 0..NUM_EDGES {
@@ -130,8 +137,86 @@ mod tests {
     }
 
     #[test]
-    fn sum_test() {
+    fn edge_sum_test() {
         let edge_set = Orientation::new_with_orientation(vec![1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]);
         assert_eq!(6, edge_set.sum());
+    }
+
+    #[test]
+    fn corner_and_orientation_test() {
+        let corner_set = Orientation::corner();
+
+        for i in 0..NUM_CORNERS {
+            let corner = *corner_set.corner_by_index(i);
+            let corner_orientation = corner_set.orientation_at_index(i);
+
+            assert_eq!(corner, CORNER_CUBIES[i as usize]);
+            assert_eq!(corner_orientation, 0);
+        }
+    }
+
+    #[test]
+    fn first_corner_orientation_test() {
+        let corner_set = Orientation::new_with_orientation(vec![2; NUM_CORNERS as usize]);
+
+        for i in 0..NUM_CORNERS {
+            let corner_orientation = corner_set.orientation_at_index(i);
+            assert_eq!(corner_orientation, 2);
+        }
+    }
+
+    #[test]
+    fn second_orientation_test() {
+        let corner_set = Orientation::new_with_orientation(vec![1; NUM_CORNERS as usize]);
+
+        for i in 0..NUM_CORNERS {
+            let corner_orientation = corner_set.orientation_at_index(i);
+            assert_eq!(corner_orientation, 1);
+        }
+    }
+
+    #[test]
+    fn corner_add_one_test() {
+        let mut corner_set = Orientation::new_with_orientation(vec![1; NUM_CORNERS as usize]);
+
+        for i in 0..NUM_CORNERS {
+            let corner_orientation = corner_set.orientation_at_index(i);
+            corner_set.add_one(i);
+            assert_eq!(
+                (corner_orientation + 1) % NUM_CORNER_ORIENTATION,
+                corner_set.orientation_at_index(i)
+            );
+        }
+    }
+
+    #[test]
+    fn add_two_test() {
+        let mut corner_set = Orientation::new_with_orientation(vec![1; NUM_CORNERS as usize]);
+
+        for i in 0..NUM_CORNERS {
+            let corner_orientation = corner_set.orientation_at_index(i);
+            corner_set.add_two(i);
+            assert_eq!(
+                (corner_orientation + 2) % NUM_CORNER_ORIENTATION,
+                corner_set.orientation_at_index(i)
+            );
+        }
+    }
+
+    #[test]
+    fn add_test() {
+        let mut corner_set = Orientation::corner();
+
+        corner_set.add_one(2);
+        corner_set.add_two(2);
+        corner_set.add_one(2);
+
+        assert_eq!(corner_set.sum(), 1);
+    }
+
+    #[test]
+    fn corner_sum_test() {
+        let corner_set = Orientation::new_with_orientation(vec![2, 1, 0, 1, 2, 0, 2, 1]);
+        assert_eq!(9, corner_set.sum());
     }
 }
