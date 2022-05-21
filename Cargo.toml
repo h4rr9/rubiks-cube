@@ -16,6 +16,7 @@ strum_macros = "0.24"
 
 # python
 pyo3 = { version = "0.16.3", features = ["extension-module"], optional = true }
+numpy = {version = "0.16.2", optional = true}
 
 
 [dev-dependencies]
@@ -26,7 +27,7 @@ name = "turn_bench"
 harness = false
 
 [features]
-python = ["pyo3"]
+python = ["pyo3", "numpy"]
 
 [profile.release]
 lto = true

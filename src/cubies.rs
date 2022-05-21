@@ -180,6 +180,10 @@ impl Edge {
 pub const NUM_CORNERS: u8 = 8;
 pub const NUM_EDGES: u8 = 12;
 
+pub const NUM_STATES: u8 = 24;
+pub const NUM_CORNER_ORIENTATION: u8 = 3;
+pub const NUM_EDGE_ORIENTATION: u8 = 2;
+
 type FaceletIdxs = (Faces, u8, u8);
 
 pub const CORNER_FACELETS: [(FaceletIdxs, FaceletIdxs, FaceletIdxs); NUM_CORNERS as usize] = [

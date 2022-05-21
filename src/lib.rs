@@ -28,6 +28,9 @@ pub use moves::{MetricKind, Turn};
 use pyo3::{exceptions::PyIndexError, prelude::*, types::PyType};
 
 #[cfg(feature = "python")]
+use numpy::array::PyArray1;
+
+#[cfg(feature = "python")]
 #[pyclass(name = "Cube")]
 struct PyCube(Cube, Vec<PyTurn>);
 
@@ -41,9 +44,20 @@ impl PyCube {
             Self::all_possible_turns().unwrap(),
         )
     }
+
+    #[classmethod]
+    fn cube_htm(_py: &PyType) -> Self {
+        PyCube(Cube::cube_htm(), Self::all_possible_turns().unwrap())
+    }
+
+    #[classmethod]
+    fn cube_qtm(_py: &PyType) -> Self {
+        PyCube(Cube::cube_qtm(), Self::all_possible_turns().unwrap())
+    }
+
     #[classmethod]
     #[args(num_turns = "100")]
-    fn scramble(_: &PyType, num_turns: u32, turn_metric: &PyMetric) -> Self {
+    fn scramble(_py: &PyType, num_turns: u32, turn_metric: &PyMetric) -> Self {
         PyCube(
             Cube::scramble(num_turns, turn_metric.0),
             Self::all_possible_turns().unwrap(),
@@ -94,8 +108,8 @@ impl PyCube {
         ])
     }
 
-    fn representation(&self) -> Vec<bool> {
-        Vec::from(self.0.representation())
+    fn representation<'a>(&self, _py: Python<'a>) -> &'a PyArray1<bool> {
+        PyArray1::from_slice(_py, &self.0.representation())
     }
 }
 
@@ -134,7 +148,7 @@ impl PyTurn {
 /// A Python module implemented in Rust.
 #[cfg(feature = "python")]
 #[pymodule]
-fn rcube_env(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn rubikscube(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyCube>()?;
     m.add_class::<PyTurn>()?;
     m.add_class::<PyMetric>()?;
