@@ -10,9 +10,40 @@ rand = "0.8"
 strum = "0.24"
 strum_macros = "0.24"
 
+
+# wasm
+wasm-bindgen = {version = "0.2.80", optional = true}
+js-sys = {version = "0.3.57", optional = true}
+console_error_panic_hook = { version = "0.1.7", optional = true }
+wee_alloc = { version = "0.4.5", optional = true }
+getrandom = { version = "0.2", features = ["js"], optional = true }
+
+
+[dependencies.web-sys]
+version = "0.3.57"
+optional = true
+features = [
+    'Document',
+    'Element',
+    'EventTarget',
+    'HtmlCanvasElement',
+    'MouseEvent',
+    'WebGlBuffer',
+    'WebGlProgram',
+    'WebGlRenderingContext',
+    'WebGlShader',
+    'WebGlUniformLocation',
+    'Window',
+]
+
 [dev-dependencies]
 criterion = "0.3"
 
 [[bench]]
 name = "turn_bench"
 harness = false
+
+
+[features]
+wasm = ["wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook",
+"wee_alloc", "getrandom"]
