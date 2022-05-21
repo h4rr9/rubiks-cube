@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::CubeError;
+use crate::errors::CubeError;
 
 #[derive(PartialEq, Clone, Copy, Debug, PartialOrd)]
 #[repr(u8)]
