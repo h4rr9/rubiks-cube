@@ -55,13 +55,9 @@ impl PyCube {
         PyCube(Cube::cube_qtm(), Self::all_possible_turns().unwrap())
     }
 
-    #[classmethod]
     #[args(num_turns = "100")]
-    fn scramble(_py: &PyType, num_turns: u32, turn_metric: &PyMetric) -> Self {
-        PyCube(
-            Cube::scramble(num_turns, turn_metric.0),
-            Self::all_possible_turns().unwrap(),
-        )
+    fn scramble(&mut self, num_turns: u32) {
+        self.0.scramble(num_turns);
     }
 
     fn turn(&mut self, twist: u8) -> PyResult<()> {
