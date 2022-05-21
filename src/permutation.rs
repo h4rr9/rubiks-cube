@@ -1,12 +1,20 @@
+use crate::cubies::{NUM_CORNERS, NUM_EDGES};
+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Permutation {
     permutation: Vec<u8>,
 }
 
 impl Permutation {
-    pub fn new(size: u8) -> Permutation {
+    pub fn edge() -> Permutation {
         Permutation {
-            permutation: (0..size).collect(),
+            permutation: (0..NUM_EDGES).collect(),
+        }
+    }
+
+    pub fn corner() -> Permutation {
+        Permutation {
+            permutation: (0..NUM_CORNERS).collect(),
         }
     }
 
@@ -43,12 +51,7 @@ impl Permutation {
     }
 
     pub fn cubie_in_cubicle(&self, idx: u8) -> u8 {
-        let cubie_index = self.permutation[idx as usize];
-        if cubie_index as usize >= self.permutation.len() {
-            panic!("invalid cubie index {}", cubie_index);
-        }
-
-        cubie_index
+        self.permutation[idx as usize]
     }
 }
 
@@ -56,6 +59,14 @@ impl Permutation {
 mod tests {
     use super::*;
     use crate::cubies::{NUM_CORNERS, NUM_EDGES};
+
+    impl Permutation {
+        pub fn new(size: u8) -> Permutation {
+            Permutation {
+                permutation: (0..size).collect(),
+            }
+        }
+    }
 
     #[test]
     fn swap_four_corners_sanity_test() {
