@@ -178,25 +178,18 @@ impl Cube {
     /// use rubikscube::MetricKind;
     /// let num_scramble_turns = 100;
     ///
-    /// let cube = Cube::scramble(num_scramble_turns, MetricKind::HalfTurnMetric);
+    /// let mut cube = Cube::cube_htm();
+    /// cube.scramble(num_scramble_turns);
     /// ```
-    pub fn scramble(num_turns: u32, turn_metric: MetricKind) -> Cube {
-        let mut cube = Cube::new(turn_metric);
-
-        let between = Uniform::from(0..cube.turn_metric as u8);
+    pub fn scramble(&mut self, num_turns: u32) {
+        let between = Uniform::from(0..self.turn_metric as u8);
         let mut rng = rand::thread_rng();
 
         for _ in 0..num_turns {
             let sampled_index: u8 = between.sample(&mut rng);
             let sampled_turn: Turn = Turn::from_u8(sampled_index).unwrap();
-            cube._turn(sampled_turn);
+            self._turn(sampled_turn);
         }
-
-        assert_eq!(
-            cube.edge_permutation.parity(),
-            cube.corner_permutation.parity(),
-        );
-        cube
     }
     /// Performs the specified turn on the cube object.
     ///
@@ -599,7 +592,9 @@ mod tests {
 
     #[test]
     fn cube_turns_test() {
-        let _cube = Cube::scramble(32, MetricKind::HalfTurnMetric);
+        let mut cube = Cube::cube_htm();
+        cube.scramble(1000);
+        assert!(cube.is_solvable());
     }
 
     #[test]
@@ -619,7 +614,8 @@ mod tests {
 
     #[test]
     fn cube_solvable_test() {
-        let cube = Cube::scramble(32, MetricKind::HalfTurnMetric);
+        let mut cube = Cube::cube_htm();
+        cube.scramble(1000);
 
         assert_eq!(
             cube.edge_permutation.parity(),
@@ -832,7 +828,8 @@ mod tests {
 
     #[test]
     fn cube_quarter_turn_test() {
-        let cube = Cube::scramble(100, MetricKind::QuarterTurnMetric);
+        let mut cube = Cube::cube_qtm();
+        cube.scramble(1000);
         assert!(cube.is_solvable());
     }
 }

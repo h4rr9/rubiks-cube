@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
-rand = "0.8"
+rand = {version = "0.8.5"}
 strum = "0.24"
 strum_macros = "0.24"
 
