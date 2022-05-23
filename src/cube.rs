@@ -404,6 +404,39 @@ impl Cube {
 
         solved
     }
+
+    pub fn get_state(&self) -> [Vec<u8>; 4] {
+        let edge_orientation_state: Vec<u8> = self.edge_orientation.orientations();
+        let corner_orientation_state: Vec<u8> = self.corner_orientation.orientations();
+        let edge_permutation_state = self.edge_permutation.permutation();
+        let corner_permuation_state = self.corner_permutation.permutation();
+
+        [
+            edge_orientation_state,
+            corner_orientation_state,
+            edge_permutation_state,
+            corner_permuation_state,
+        ]
+    }
+
+    pub fn set_state(
+        &mut self,
+        edge_orienatation_state: Vec<u8>,
+        corner_orientation_state: Vec<u8>,
+        edge_permutation_state: Vec<u8>,
+        corner_permuation_state: Vec<u8>,
+    ) -> Result<(), CubeError> {
+        self.edge_orientation
+            .set_orientations(edge_orienatation_state)?;
+        self.corner_orientation
+            .set_orientations(corner_orientation_state)?;
+        self.edge_permutation
+            .set_permutation(edge_permutation_state)?;
+        self.corner_permutation
+            .set_permutation(corner_permuation_state)?;
+
+        Ok(())
+    }
 }
 
 impl Display for Cube {

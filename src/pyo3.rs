@@ -1,6 +1,8 @@
 use crate::cube::Cube;
 use crate::moves::{MetricKind, Turn};
 
+use pyo3::exceptions::PyValueError;
+use pyo3::types::PyTuple;
 #[cfg(feature = "python")]
 use pyo3::{exceptions::PyIndexError, prelude::*, types::PyType};
 
@@ -83,6 +85,30 @@ impl PyCube {
 
     fn representation<'a>(&self, _py: Python<'a>) -> &'a PyArray1<bool> {
         PyArray1::from_slice(_py, &self.0.representation())
+    }
+
+    fn get_state<'a>(&self, py: Python<'a>) -> &'a PyTuple {
+        PyTuple::new(py, self.0.get_state())
+    }
+
+    fn set_state<'a>(&mut self, state: &'a PyTuple) -> PyResult<()> {
+        if state.len() != 4 {
+            return Err(PyValueError::new_err(format!(
+                "Expected tuple of size 4, found {}",
+                state.len()
+            )));
+        }
+
+        let e_o_s: Vec<u8> = state.get_item(0)?.extract()?;
+        let c_o_s: Vec<u8> = state.get_item(1)?.extract()?;
+        let e_p_s: Vec<u8> = state.get_item(2)?.extract()?;
+        let c_p_s: Vec<u8> = state.get_item(3)?.extract()?;
+
+        if let Err(e) = self.0.set_state(e_o_s, c_o_s, e_p_s, c_p_s) {
+            return Err(PyValueError::new_err(e.to_string()));
+        } else {
+            return Ok(());
+        }
     }
 }
 
