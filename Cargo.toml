@@ -27,6 +27,7 @@ name = "turn_bench"
 harness = false
 
 [features]
+default = ["python"]
 python = ["pyo3", "numpy"]
 
 [profile.release]

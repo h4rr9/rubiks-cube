@@ -93,6 +93,10 @@ struct PyMetric(MetricKind);
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyMetric {
+    fn to_int(&self) -> u8 {
+        self.0 as u8
+    }
+
     fn __str__(&self) -> String {
         format!("{}", self.0)
     }

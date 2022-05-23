@@ -17,6 +17,13 @@ t_turn = timeit.timeit(
     setup='from rubikscube import Cube;cube=Cube.cube_htm()',
     number=TRIALS)
 
+t_env = timeit.timeit(
+    'env.step(0)',
+    setup=
+    'from rubikscube import HalfTurnMetric;from env import CubeEnv;env=CubeEnv(HalfTurnMetric, 1)',
+    number=TRIALS)
+
 print(f"time -- turn + repr + solved :::  {t_turn_repr_solve}")
 print(f"time -- turn + repr  :::  {t_turn_repr}")
 print(f"time -- turn  :::  {t_turn}")
+print(f"time -- env  :::  {t_env}")
