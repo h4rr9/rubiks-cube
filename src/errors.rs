@@ -7,6 +7,7 @@ pub enum CubeError {
     InvalidFaceOrder(Faces, usize),
     InvalidFaceletColor,
     InvalidTurn(u8, u8),
+    InvalidState,
 }
 
 impl std::error::Error for CubeError {}
@@ -29,6 +30,9 @@ impl fmt::Display for CubeError {
                     limit - 1,
                     index
                 )
+            }
+            CubeError::InvalidState => {
+                write!(f, "Invalid State",)
             }
         }
     }

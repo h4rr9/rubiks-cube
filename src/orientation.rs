@@ -1,4 +1,7 @@
-use crate::cubies::{NUM_CORNERS, NUM_CORNER_ORIENTATION, NUM_EDGES, NUM_EDGE_ORIENTATION};
+use crate::{
+    cubies::{NUM_CORNERS, NUM_CORNER_ORIENTATION, NUM_EDGES, NUM_EDGE_ORIENTATION},
+    errors::CubeError,
+};
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Orientation {
@@ -69,6 +72,21 @@ impl Orientation {
 
     pub fn sum(&self) -> u8 {
         self.orientations.iter().sum()
+    }
+
+    /// Get a reference to the orientation's orientations.
+    #[must_use]
+    pub fn orientations(&self) -> Vec<u8> {
+        self.orientations.to_vec()
+    }
+
+    /// Set the orientation's orientations.
+    pub fn set_orientations(&mut self, orientations: Vec<u8>) -> Result<(), CubeError> {
+        if orientations.len() != self.orientations.len() {
+            return Err(CubeError::InvalidState);
+        }
+        self.orientations = orientations;
+        Ok(())
     }
 }
 

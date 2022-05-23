@@ -326,17 +326,13 @@ impl Cube {
     pub fn representation(&self) -> [bool; 480] {
         let mut repr = [false; 480];
 
-        const NUM_STATES: usize = 24;
-        const NUM_CORNER_ORIENTATION: usize = 3;
-        const NUM_EDGE_ORIENTATION: usize = 2;
-
         // corner cubicles representation
         for corner_idx in 0..NUM_CORNERS {
             let cubie_idx = self.corner_permutation.cubie_in_cubicle(corner_idx);
             let cubie_orientation =
                 self.corner_orientation.orientation_at_index(cubie_idx) as usize;
-            let index = NUM_STATES * cubie_idx as usize
-                + NUM_CORNER_ORIENTATION * corner_idx as usize
+            let index = (NUM_STATES * cubie_idx) as usize
+                + (NUM_CORNER_ORIENTATION * corner_idx) as usize
                 + cubie_orientation;
             repr[index] = true;
         }
@@ -345,8 +341,8 @@ impl Cube {
         for edge_idx in 0..NUM_EDGES {
             let cubie_idx = self.edge_permutation.cubie_in_cubicle(edge_idx);
             let cubie_orientation = self.edge_orientation.orientation_at_index(cubie_idx) as usize;
-            let index = (NUM_STATES * (cubie_idx + NUM_CORNERS) as usize
-                + NUM_EDGE_ORIENTATION * edge_idx as usize
+            let index = (NUM_STATES as usize * (cubie_idx + NUM_CORNERS) as usize
+                + (NUM_EDGE_ORIENTATION * edge_idx) as usize
                 + cubie_orientation) as usize;
             repr[index] = true;
         }
@@ -407,6 +403,39 @@ impl Cube {
         }
 
         solved
+    }
+
+    pub fn get_state(&self) -> [Vec<u8>; 4] {
+        let edge_orientation_state: Vec<u8> = self.edge_orientation.orientations();
+        let corner_orientation_state: Vec<u8> = self.corner_orientation.orientations();
+        let edge_permutation_state = self.edge_permutation.permutation();
+        let corner_permuation_state = self.corner_permutation.permutation();
+
+        [
+            edge_orientation_state,
+            corner_orientation_state,
+            edge_permutation_state,
+            corner_permuation_state,
+        ]
+    }
+
+    pub fn set_state(
+        &mut self,
+        edge_orienatation_state: Vec<u8>,
+        corner_orientation_state: Vec<u8>,
+        edge_permutation_state: Vec<u8>,
+        corner_permuation_state: Vec<u8>,
+    ) -> Result<(), CubeError> {
+        self.edge_orientation
+            .set_orientations(edge_orienatation_state)?;
+        self.corner_orientation
+            .set_orientations(corner_orientation_state)?;
+        self.edge_permutation
+            .set_permutation(edge_permutation_state)?;
+        self.corner_permutation
+            .set_permutation(corner_permuation_state)?;
+
+        Ok(())
     }
 }
 

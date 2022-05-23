@@ -1,4 +1,7 @@
-use crate::cubies::{NUM_CORNERS, NUM_EDGES};
+use crate::{
+    cubies::{NUM_CORNERS, NUM_EDGES},
+    errors::CubeError,
+};
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Permutation {
@@ -52,6 +55,21 @@ impl Permutation {
 
     pub fn cubie_in_cubicle(&self, idx: u8) -> u8 {
         self.permutation[idx as usize]
+    }
+
+    /// Get a reference to the permutation's permutation.
+    #[must_use]
+    pub fn permutation(&self) -> Vec<u8> {
+        self.permutation.to_vec()
+    }
+
+    /// Set the permutation's permutation.
+    pub fn set_permutation(&mut self, permutation: Vec<u8>) -> Result<(), CubeError> {
+        if permutation.len() != self.permutation.len() {
+            return Err(CubeError::InvalidState);
+        }
+        self.permutation = permutation;
+        Ok(())
     }
 }
 
