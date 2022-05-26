@@ -10,6 +10,7 @@ develop-pyo3:
 
 test:
 	cargo test 
+	nose2 -vv -t ./train -s ./train --log-capture
 
 bench:
 	cargo bench
